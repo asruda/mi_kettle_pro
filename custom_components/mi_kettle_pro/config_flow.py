@@ -169,7 +169,7 @@ class MiKettleProOptionsFlow(OptionsFlow):
 
         if user_input is not None:
             # Validate the input
-            bt_interface = user_input[CONF_BT_INTERFACE] 
+            bt_interface = user_input[CONF_BT_INTERFACE]
             if len(bt_interface) == 0:
                 errors["base"] = "Please configure Bluetooth Interface"
             elif (

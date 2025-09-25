@@ -1,10 +1,11 @@
 {
   "domain": "mi_kettle_pro",
-  "name": "Mi Kettle Pro",
+  "name": "Mi Smart Kettle Pro",
   "codeowners": ["@asruda"],
   "config_flow": true,
   "dependencies": ["bluetooth_adapters"],
   "documentation": "https://github.com/asruda/mi_kettle_pro",
+  "issue_tracker": "https://github.com/asruda/mi_kettle_pro/issues",
   "homekit": {},
   "iot_class": "local_polling",
   "quality_scale": "bronze",

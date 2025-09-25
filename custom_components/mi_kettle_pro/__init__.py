@@ -63,9 +63,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
             return True
         raise Exception(
-            "unable to connect to device: %s, bt interface list:%s",
-            entry.data["mac"],
-            interface_list,
+            f"unable to connect to device: {entry.data["mac"]}, bt interface list:{interface_list}"
         )
 
     except Exception as e:

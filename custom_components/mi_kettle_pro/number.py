@@ -14,8 +14,6 @@ from .const import (
     DOMAIN,
     CONF_HEAT_TEMPERATURE,
     CONF_WARM_TEMPERATURE,
-    DEFAULT_HEAT_TEMPERATURE,
-    DEFAULT_WARM_TEMPERATURE,
     MIN_HEAT_TEMPERATURE,
     MAX_HEAT_TEMPERATURE,
     MIN_WARM_TEMPERATURE,
@@ -112,7 +110,7 @@ class MiKettleProBaseNumber(NumberEntity):
         self.hass.config_entries.async_update_entry(
             self._entry,
             options=new_options
-        )        
+        )
 
 class MiKettleProHeatTemperatureNumber(MiKettleProBaseNumber):
     """Representation of a Mi Kettle Pro heat temperature number entity."""

@@ -2,14 +2,14 @@ rules:
   # Bronze
   action-setup: todo
   appropriate-polling: todo
-  brands: todo
+  brands: yes
   common-modules: todo
   config-flow-test-coverage: todo
   config-flow: yes
   dependency-transparency: todo
   docs-actions: todo
   docs-high-level-description: todo
-  docs-installation-instructions: todo
+  docs-installation-instructions: yes
   docs-removal-instructions: todo
   entity-event-setup: todo
   entity-unique-id: yes

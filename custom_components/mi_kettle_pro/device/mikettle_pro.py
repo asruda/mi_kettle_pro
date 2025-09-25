@@ -6,7 +6,6 @@ import logging
 import hashlib
 import hmac
 import os
-from types import coroutine
 from typing import Callable
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -370,13 +369,13 @@ class MiKettlePro:
     def _generate_rand_data(self):
         """发送应用随机数"""
         self.app_random = os.urandom(16)
-        rand_data = b'\x01\x00' + self.app_random
+        rand_data = b"\x01\x00" + self.app_random
         return rand_data
 
     def _get_key_from_notify_data(self, data: list):
-        key : bytes = b''
+        key : bytes = b""
         for item in data:
-            if item.startswith(bytes.fromhex('0100')) or item.startswith(bytes.fromhex('0200')):
+            if item.startswith(bytes.fromhex("0100")) or item.startswith(bytes.fromhex("0200")):
                 key = key + item[2:]
                 continue
         return key
@@ -542,7 +541,7 @@ class MiKettlePro:
         if len(data) < 11:
             _LOGGER.warning("Invalid status data length: %d", len(data))
             return
-        
+
         action = MI_ACTION_MAP.get(int(data[0]), "unknown")
         is_control = False if action == "idle" else True
 
@@ -590,13 +589,13 @@ class MiKettlePro:
         uuid = sender.uuid
         _LOGGER.debug(
             "[Notification] uuid: %s, Data: %s",
-            uuid, binascii.hexlify(data).decode('utf-8')
+            uuid, binascii.hexlify(data).decode("utf-8")
         )
         if uuid in (self.auth, self.auth_init):
             self.received_data.setdefault(uuid, []).append(data)
             # _LOGGER.debug(
             #     "[Notification] uuid: %s, Data: %s, Receive: %s",
-            #     uuid, binascii.hexlify(data).decode('utf-8'), self.received_data
+            #     uuid, binascii.hexlify(data).decode("utf-8"), self.received_data
             # )
 
         if uuid == self.warm_status:
@@ -617,13 +616,13 @@ class MiKettlePro:
             ret = bytes()
             ret = await self.get_notification_data(uuid, 1, single_result=wait_single_result)
             if expect_value not in ret:
-                msg = f"Error Resp, Handle: {uuid}, Data: [{ret}], Need: [{binascii.hexlify(expect_value).decode('utf-8')}]"
+                msg = f"Error Resp, Handle: {uuid}, Data: [{ret}], Need: [{binascii.hexlify(expect_value).decode("utf-8")}]"
                 _LOGGER.error(msg)
                 raise ValueError(msg)
             else:
                 _LOGGER.debug(
                     "Resp OK, Handle: %s, Data: [%s], Need: [%s]",
-                    uuid, ret, binascii.hexlify(expect_value).decode('utf-8')
+                    uuid, ret, binascii.hexlify(expect_value).decode("utf-8")
                 )
         return True
 
@@ -653,6 +652,7 @@ class MiKettlePro:
         self.update_entities_availability(False)
 
     async def _async_update_kettle_mode(self):
+        """更新水壶配置，获取温度设置值"""
         def _get_temp_by_entity_id(entity_id):
             temp_state = self.hass.states.get(entity_id)
             temperature = None
@@ -672,7 +672,6 @@ class MiKettlePro:
                     raise
             return temperature
 
-        """更新水壶配置，获取温度设置值"""
         try:
             # 获取加热温度
             heat_temperature = _get_temp_by_entity_id(self.heat_temp_entity_id)
@@ -688,10 +687,10 @@ class MiKettlePro:
             if not data:
                 return
 
-            mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes() + bytes.fromhex('18'))
+            mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes() + bytes.fromhex("18"))
             if not mode_data:
                 return
-            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes()  + bytes.fromhex('18'))
+            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes()  + bytes.fromhex("18"))
             if not mode_data:
                 return
             await self.write(self.write_mode_config, mode_data)
@@ -737,7 +736,7 @@ class MiKettlePro:
         segments[mode_index] = new_mode_data
 
         # 重新组合所有段
-        modified_data = b''.join(segments)
+        modified_data = b"".join(segments)
 
         _LOGGER.debug("Mode data subsituted: index=%d, new_data=%s, result=%s",
                     mode_index, new_mode_data.hex(), modified_data.hex())
@@ -794,7 +793,7 @@ class MiKettlePro:
                 "modify_mode_config_by_segment failed, unsupport index_desc: %s",
                 index_desc
             )
-        mode_data = self.replace_mode_segment(data, mode_index, int(temperature).to_bytes() + bytes.fromhex('18'))
+        mode_data = self.replace_mode_segment(data, mode_index, int(temperature).to_bytes() + bytes.fromhex("18"))
         if not mode_data:
             return
 
@@ -836,16 +835,16 @@ class MiKettlePro:
     async def action_async(self, action):
         warm_after_boil_bytes = self.status_data["warm_after_boil_raw"].to_bytes()
         if action == "heat":
-            await self.write(self.warm_setting_1, bytes.fromhex('04') + warm_after_boil_bytes)
+            await self.write(self.warm_setting_1, bytes.fromhex("04") + warm_after_boil_bytes)
             _LOGGER.debug("start heat water")
         elif action in ["turn_off_heat", "warm"]:
-            await self.write(self.warm_setting_1, bytes.fromhex('03') + warm_after_boil_bytes)
+            await self.write(self.warm_setting_1, bytes.fromhex("03") + warm_after_boil_bytes)
         elif action == "turn_off_keep_warm":
             mode = self.get_current_mode()
             if mode:
-                await self.write(self.warm_setting_1, int(mode).to_bytes() + bytes.fromhex('00'))
+                await self.write(self.warm_setting_1, int(mode).to_bytes() + bytes.fromhex("00"))
             else:
-                _LOGGER.error("turn_off_keep_warm failed")
+                _LOGGER.error("Failed to turn off_keep_warm.")
 
     def get_current_mode(self):
         """get current warm mode"""

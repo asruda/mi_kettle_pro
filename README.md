@@ -62,7 +62,7 @@ Add a new entry for one device in the Home Assistant UI:
 | `0` | no | - |
 | `1` | no | - |
 | `2` | no | - |
-| `3` | **yes** | keep-warm mode, Temperature: `keep-warm temperature`, Duration: 12 hours |
+| `3` | **yes** | warming mode, Temperature: `warming temperature`, Duration: 12 hours |
 | `4` | **yes** | heating mode, Temperature: `heating temperature`, Duration: 12 hours |
 
 ## Troubleshooting

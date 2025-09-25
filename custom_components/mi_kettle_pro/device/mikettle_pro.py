@@ -43,8 +43,9 @@ from ..const import (
     AVAIL_EVENT_KEY_AVAIL,
     AVAIL_EVENT,
     AVAIL_EVENT_KEY_IS_LOGIN,
+    AVAIL_EVENT_KEY_IS_CONTROL,
     WARM_INDEX,
-    BOIL_INDEX,
+    HEAT_INDEX,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -76,7 +77,7 @@ class MiKettlePro:
         self.poll_interval = poll_interval
         self.entry_id = entry_id
         self.entry = self.hass.config_entries.async_get_entry(self.entry_id)
-        self.boil_temp_entity_id = gen_entity_id(self.entry, "number", "boil_temperature")
+        self.heat_temp_entity_id = gen_entity_id(self.entry, "number", "heat_temperature")
         self.warm_temp_entity_id = gen_entity_id(self.entry, "number", "warm_temperature")
         self.bt_interface = bt_interface
 
@@ -224,13 +225,13 @@ class MiKettlePro:
 
                     if self.is_login:
                         await self._async_read_status()
-                        await self.boil_safe_check()
+                        await self.heat_safe_check()
 
                     # 使用异步等待而不是 time.sleep
                     await asyncio.sleep(self.poll_interval)
 
                 except asyncio.CancelledError as exc:
-                    _LOGGER.info("Cancel update loop: %s", exc)
+                    _LOGGER.info("Cancel device loop task. %s", exc)
 
                     # 任务被取消，重新抛出以正确终止
                     raise
@@ -541,9 +542,13 @@ class MiKettlePro:
         if len(data) < 11:
             _LOGGER.warning("Invalid status data length: %d", len(data))
             return
+        
+        action = MI_ACTION_MAP.get(int(data[0]), "unknown")
+        is_control = False if action == "idle" else True
 
         return {
-            "action": MI_ACTION_MAP.get(int(data[0]), "unknown"),
+            "action": action,
+            "is_control": is_control,
             "mode": int(data[4]),
             "mode_desc": CUSTOME_MODE_ACTION_MAP.get(int(data[4]), "unknown"),
             "current_temperature": int(data[5]),
@@ -637,8 +642,10 @@ class MiKettlePro:
     def _async_disconnect(self, client: BleakClient | None = None) -> None:
         """Disconnect from device."""
         self.is_login = False
-        if self.device.is_connected:
-            self.hass.async_create_task(self.device.disconnect())
+        if not client:
+            client = self.device
+        if client.is_connected:
+            self.hass.async_create_task(client.disconnect())
         self.received_data = {}
         self.notification_events = {}
         _LOGGER.debug("Disconnected from device")
@@ -652,7 +659,7 @@ class MiKettlePro:
             # 解析温度
             if temp_state and temp_state.state not in ("unknown", "unavailable"):
                 try:
-                    temperature = float(temp_state.state)
+                    temperature = int(temp_state.state)
                     _LOGGER.debug(
                         "获取到温度设置: temperature: %s, entity_id: %s",
                         temperature, entity_id
@@ -667,14 +674,14 @@ class MiKettlePro:
 
         """更新水壶配置，获取温度设置值"""
         try:
-            # 获取煮沸温度
-            boil_temperature = _get_temp_by_entity_id(self.boil_temp_entity_id)
+            # 获取加热温度
+            heat_temperature = _get_temp_by_entity_id(self.heat_temp_entity_id)
 
             # 获取保温温度
             warm_temperature = _get_temp_by_entity_id(self.warm_temp_entity_id)
             _LOGGER.debug(
-                "get temperature entity, boil: %s, warm: %s",
-                boil_temperature, warm_temperature
+                "get temperature entity, heat: %s, warm: %s",
+                heat_temperature, warm_temperature
             )
 
             data = await self._async_read_characteristic(self.read_mode_config)
@@ -684,7 +691,7 @@ class MiKettlePro:
             mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes() + bytes.fromhex('18'))
             if not mode_data:
                 return
-            mode_data = self.replace_mode_segment(mode_data, BOIL_INDEX, int(boil_temperature).to_bytes()  + bytes.fromhex('18'))
+            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes()  + bytes.fromhex('18'))
             if not mode_data:
                 return
             await self.write(self.write_mode_config, mode_data)
@@ -771,15 +778,15 @@ class MiKettlePro:
 
     async def modify_mode_config_by_index(self, index_desc, temperature):
         """
-        used by number entity, boil and warm
+        used by number entity, heat and warm
         """
         data = await self._async_read_characteristic(self.read_mode_config)
         if not data:
             return
 
         mode_index = 0
-        if index_desc == "boil_temperature":
-            mode_index = BOIL_INDEX
+        if index_desc == "heat_temperature":
+            mode_index = HEAT_INDEX
         elif index_desc == "warm_temperature":
             mode_index = WARM_INDEX
         else:
@@ -821,16 +828,17 @@ class MiKettlePro:
             AVAIL_EVENT_KEY_ENTRY_ID: self.entry_id,
             AVAIL_EVENT_KEY_AVAIL: available,
             AVAIL_EVENT_KEY_IS_LOGIN: self.is_login,
+            AVAIL_EVENT_KEY_IS_CONTROL: self.status_data.get(AVAIL_EVENT_KEY_IS_CONTROL, False)
         }
         self.hass.bus.async_fire(AVAIL_EVENT, event_data)
         _LOGGER.debug("发布可用性事件: 设备 %s 可用性=%s", self.entry_id, available)
 
     async def action_async(self, action):
         warm_after_boil_bytes = self.status_data["warm_after_boil_raw"].to_bytes()
-        if action == "boil":
+        if action == "heat":
             await self.write(self.warm_setting_1, bytes.fromhex('04') + warm_after_boil_bytes)
-            _LOGGER.debug("start boil water")
-        elif action in ["turn_off_boil", "warm"]:
+            _LOGGER.debug("start heat water")
+        elif action in ["turn_off_heat", "warm"]:
             await self.write(self.warm_setting_1, bytes.fromhex('03') + warm_after_boil_bytes)
         elif action == "turn_off_keep_warm":
             mode = self.get_current_mode()
@@ -849,24 +857,24 @@ class MiKettlePro:
             _LOGGER.error("get_current_mode failed, mode: %s", mode)
         return mode
 
-    async def _monitor_for_temperature(self, target_temp, callback: coroutine):
+    async def _monitor_for_temperature(self, target_temp, callback: Callable):
         """监控直到达到目标温度"""
         status = self._parse_status_data(self.cache_data)
         if status and status.get("current_temperature") >= target_temp:
             _LOGGER.debug("current temperature: %s", status.get("current_temperature"))
-            await callback
-            _LOGGER.debug("turn off boil success")
+            await callback()
+            _LOGGER.debug("turn off heat success")
 
-    async def boil_safe_check(self):
+    async def heat_safe_check(self):
         mode = self.get_current_mode()
         if not mode  >= 0:
-            _LOGGER.error("turn off boil failed, mode: %s", mode)
+            _LOGGER.error("turn off heating failed, mode: %s", mode)
             return
-        if mode == BOIL_INDEX:
+        if mode == HEAT_INDEX:
             ret = await self.async_read_mode_config_by_index(mode)
             if not ret:
-                _LOGGER.error("turn off boil failed, ret: %s", ret)
+                _LOGGER.error("turn off heating failed, ret: %s", ret)
                 return
             target_temp = ret["temperature"]
-            _LOGGER.debug("check if mode temperature reached: %s, target_temp: %s", mode, target_temp)
-            await self._monitor_for_temperature(target_temp, self.action_async("turn_off_boil"))
+            _LOGGER.debug("check if mode temperature reached, mode: %s, target_temp: %s", mode, target_temp)
+            await self._monitor_for_temperature(target_temp, lambda: self.action_async("turn_off_heat"))

@@ -37,13 +37,13 @@ class MiKettleProAutoKeepWarmSwitch(SwitchEntity):
 
     _attr_has_entity_name = True
     _attr_name = "Auto Keep-warm after Lift-off"
-    _attr_unique_id = "auto_keep_warm_after_liftoff"
+    _attr_unique_name = "auto_keep_warm_after_liftoff"
     _attr_icon = "mdi:kettle-steam"
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize the auto keep-warm switch."""
         self._entry = entry
-        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_id)
+        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_name)
         self._attr_unique_id = self.entity_id
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},

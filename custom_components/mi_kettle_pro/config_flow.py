@@ -25,14 +25,14 @@ from .const import (
     CONF_DEVICE_NAME,
     CONF_DEVICE_TOKEN,
     CONF_POLL_INTERVAL,
-    CONF_BOIL_TEMPERATURE,
+    CONF_HEAT_TEMPERATURE,
     CONF_WARM_TEMPERATURE,
     DEFAULT_DEVICE_NAME,
     DEFAULT_POLL_INTERVAL,
-    DEFAULT_BOIL_TEMPERATURE,
+    DEFAULT_HEAT_TEMPERATURE,
     DEFAULT_WARM_TEMPERATURE,
-    MIN_BOIL_TEMPERATURE,
-    MAX_BOIL_TEMPERATURE,
+    MIN_HEAT_TEMPERATURE,
+    MAX_HEAT_TEMPERATURE,
     MIN_WARM_TEMPERATURE,
     MAX_WARM_TEMPERATURE,
 )
@@ -46,17 +46,17 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Required(CONF_MAC): str,
         vol.Required(CONF_DEVICE_TOKEN): str,
         vol.Required(CONF_DEVICE_NAME, default=DEFAULT_DEVICE_NAME): str,
-        vol.Optional(
-            CONF_BOIL_TEMPERATURE, default=DEFAULT_BOIL_TEMPERATURE
+        vol.Required(
+            CONF_HEAT_TEMPERATURE, default=DEFAULT_HEAT_TEMPERATURE
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
-                min=MIN_BOIL_TEMPERATURE,
-                max=MAX_BOIL_TEMPERATURE,
+                min=MIN_HEAT_TEMPERATURE,
+                max=MAX_HEAT_TEMPERATURE,
                 step=1,
                 mode=selector.NumberSelectorMode.BOX
             )
         ),
-        vol.Optional(
+        vol.Required(
             CONF_WARM_TEMPERATURE, default=DEFAULT_WARM_TEMPERATURE
         ): selector.NumberSelector(
             selector.NumberSelectorConfig(
@@ -146,7 +146,7 @@ class MiKettleProConfigFlow(ConfigFlow, domain=DOMAIN):
         config_entry: ConfigEntry,
     ) -> MiKettleProOptionsFlow:
         """Get the options flow for this handler."""
-        return MiKettleProOptionsFlow(config_entry)
+        return MiKettleProOptionsFlow()
 
     def get_entry_name(self):
         # Get current device count to generate default device name
@@ -164,6 +164,7 @@ class MiKettleProOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         """Manage the options."""
         data = self.config_entry.data
+        options = self.config_entry.options
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -177,10 +178,10 @@ class MiKettleProOptionsFlow(OptionsFlow):
             ):
                 errors["base"] = "invalid_poll_interval"
             elif (
-                user_input[CONF_BOIL_TEMPERATURE] < MIN_BOIL_TEMPERATURE
-                or user_input[CONF_BOIL_TEMPERATURE] > MAX_BOIL_TEMPERATURE
+                user_input[CONF_HEAT_TEMPERATURE] < MIN_HEAT_TEMPERATURE
+                or user_input[CONF_HEAT_TEMPERATURE] > MAX_HEAT_TEMPERATURE
             ):
-                errors["base"] = "invalid_boil_temperature"
+                errors["base"] = "invalid_heat_temperature"
             elif (
                 user_input[CONF_WARM_TEMPERATURE] < MIN_WARM_TEMPERATURE
                 or user_input[CONF_WARM_TEMPERATURE] > MAX_WARM_TEMPERATURE
@@ -196,7 +197,6 @@ class MiKettleProOptionsFlow(OptionsFlow):
                 )
 
                 # Update the options
-                options = self.config_entry.options
                 return self.async_create_entry(data=options)
 
         default_bt_interface_value = data.get(
@@ -216,32 +216,6 @@ class MiKettleProOptionsFlow(OptionsFlow):
                     CONF_DEVICE_TOKEN,
                     default=data.get(CONF_DEVICE_TOKEN, ""),
                 ): str,
-                vol.Optional(
-                    CONF_BOIL_TEMPERATURE,
-                    default=data.get(
-                        CONF_BOIL_TEMPERATURE, DEFAULT_BOIL_TEMPERATURE
-                    ),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=MIN_BOIL_TEMPERATURE,
-                        max=MAX_BOIL_TEMPERATURE,
-                        step=1,
-                        mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
-                vol.Optional(
-                    CONF_WARM_TEMPERATURE,
-                    default=data.get(
-                        CONF_WARM_TEMPERATURE, DEFAULT_WARM_TEMPERATURE
-                    ),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=MIN_WARM_TEMPERATURE,
-                        max=MAX_WARM_TEMPERATURE,
-                        step=1,
-                        mode=selector.NumberSelectorMode.BOX
-                    )
-                ),
                 vol.Optional(
                     CONF_POLL_INTERVAL,
                     default=data.get(

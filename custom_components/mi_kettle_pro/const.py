@@ -12,7 +12,7 @@ CONF_DEVICE_NAME: Final = "device_name"
 CONF_POLL_INTERVAL: Final = "poll_interval"
 CONF_TEMPERATURE_UNIT: Final = "temperature_unit"
 CONF_BT_INTERFACE: Final = "bt_interface"
-CONF_BOIL_TEMPERATURE: Final = "boil_temperature"
+CONF_HEAT_TEMPERATURE: Final = "heat_temperature"
 CONF_WARM_TEMPERATURE: Final = "warm_temperature"
 CONF_DEVICE_MODEL: Final = "device_model"
 
@@ -33,7 +33,7 @@ TEMPERATURE_UNITS: Final = [
 CAPABILITIES: Final = {
     "status": True,
     "current_temperature": True,
-    "boil_temperature": True,
+    "heat_temperature": True,
     "warm_temperature": True,
     "auto_keep_warm": True,
     "controllable": True
@@ -67,16 +67,16 @@ ACK_SUCCESS: Final = bytes.fromhex("00000100")
 MI_ACTION_MAP: Final = {
     0: "idle",
     1: "heating",
-    2: "heating",  # Boil And Keep Warm To The Set Temperature
+    2: "heating",  # Heat And Keep Warm To The Set Temperature
     3: "keeping warm",
     4: "cooling",
 }
 
 # Status mapping
 CUSTOME_MODE_ACTION_MAP: Final = {
-    0: "warm",
-    3: "warm",
-    4: "boil",
+    0: "Warming",
+    3: "Warming",
+    4: "Heating",
 }
 
 MI_BOOL_MAP: Final = {
@@ -85,9 +85,9 @@ MI_BOOL_MAP: Final = {
 }
 
 # Temperature settings
-DEFAULT_BOIL_TEMPERATURE: Final = 90  # Default boil temperature
-MIN_BOIL_TEMPERATURE: Final = 50      # Minimum boil temperature
-MAX_BOIL_TEMPERATURE: Final = 100     # Maximum boil temperature
+DEFAULT_HEAT_TEMPERATURE: Final = 90  # Default heat temperature
+MIN_HEAT_TEMPERATURE: Final = 50      # Minimum heat temperature
+MAX_HEAT_TEMPERATURE: Final = 100     # Maximum heat temperature
 
 DEFAULT_WARM_TEMPERATURE: Final = 20  # Default warm temperature
 MIN_WARM_TEMPERATURE: Final = 10      # Minimum warm temperature
@@ -98,8 +98,9 @@ AVAIL_EVENT = f"{DOMAIN}_availability_changed"
 AVAIL_EVENT_KEY_ENTRY_ID = "entry_id"
 AVAIL_EVENT_KEY_AVAIL = "available"
 AVAIL_EVENT_KEY_IS_LOGIN = "is_login"
+AVAIL_EVENT_KEY_IS_CONTROL = "is_control"
 
 # device_mode
 WARM_INDEX = 3
-BOIL_INDEX = 4
+HEAT_INDEX = 4
 MODE_LENGTH = 4

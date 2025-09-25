@@ -34,15 +34,15 @@ DEVICE_CONFIGS: dict[str, DeviceConfig] = {
         ],
         "manufacturer": "Xiaomi",
         "entities": {
-            "button": ["MiKettleProBoilButton", "MiKettleProWarmButton"],
+            "button": ["MiKettleProHeatButton", "MiKettleProWarmButton"],
             "number": [
-                "MiKettleProBoilTemperatureNumber",
+                "MiKettleProHeatTemperatureNumber",
                 "MiKettleProWarmTemperatureNumber"
             ],
             "sensor": [
                 "MiKettleProStatusSensor",
                 "MiKettleProCurrentTemperatureSensor",
-                "MiKettleProControllableSensor"
+                "MiKettleProOperationModeSensor"
             ],
             "time": [],
             "switch": [],

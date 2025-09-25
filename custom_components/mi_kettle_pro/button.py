@@ -9,7 +9,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .const import (
     DOMAIN,
     AVAIL_EVENT_KEY_ENTRY_ID,
-    AVAIL_EVENT_KEY_IS_LOGIN,
+    AVAIL_EVENT_KEY_IS_CONTROL,
     AVAIL_EVENT,
 )
 from .device_config import DEVICE_CONFIGS
@@ -18,13 +18,12 @@ from .utils import gen_entity_id
 PLATFORM = "button"
 
 class MiKettleProButtonException(Exception):
-    def __init__(self, message="An error occurred in MiKettle Pro Button"):
+    def __init__(self, message="An error occurred in MiKettle Pro Button") -> None:
         self.message = message
         super().__init__(self.message)
 
     def __str__(self):
         return f'MiKettleProButtonException: {self.message}'
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -44,15 +43,13 @@ async def async_setup_entry(
 
 class MiKettleProBaseButton(ButtonEntity):
     """Base class for Mi Kettle Pro button entities."""
-
     _attr_has_entity_name = True
-    _attr_unique_id = "no set"
     _attr_unique_name = "no set"
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize the base button entity."""
         self._entry = entry
-        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_id)
+        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_name)
         self._attr_unique_id = self.entity_id
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
@@ -85,7 +82,7 @@ class MiKettleProBaseButton(ButtonEntity):
         if event.data.get(AVAIL_EVENT_KEY_ENTRY_ID) == self._entry.entry_id:
             # enable if login into device
             self._attr_available = event.data.get(
-                AVAIL_EVENT_KEY_IS_LOGIN, False
+                AVAIL_EVENT_KEY_IS_CONTROL, False
             )
             self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
@@ -104,36 +101,32 @@ class MiKettleProBaseButton(ButtonEntity):
         return await self.action_async()
 
 
-class MiKettleProBoilButton(MiKettleProBaseButton):
-    """Representation of a Mi Kettle Pro boil button."""
+class MiKettleProHeatButton(MiKettleProBaseButton):
+    """Representation of a Mi Kettle Pro Heat button."""
 
-    _attr_name = "Boil"
-    _attr_unique_id = "boil"
-    _attr_unique_name = "boil"
-    _attr_icon = "mdi:fire"
+    _attr_name = "Heat"
+    _attr_unique_name = "heat"
+    _attr_icon = "mdi:kettle-steam"
 
 class MiKettleProWarmButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro warm button."""
 
     _attr_name = "Warm"
-    _attr_unique_id = "warm"
     _attr_unique_name = "warm"
-    _attr_icon = "mdi:fire-off"
+    _attr_icon = "mdi:kettle"
 
 
 class MiKettleProTurnOffBoilButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro turn off boil button."""
 
-    _attr_name = "Turn off Boil"
-    _attr_unique_id = "turn_off_boil"
+    _attr_name = "Turn off Boiling"
     _attr_unique_name = "turn_off_boil"
     _attr_icon = "mdi:fire-off"
 
 
-class MiKettleProTurnOffKeepWarmButton(MiKettleProBaseButton):
+class MiKettleProTurnOffWarmButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro turn off keep-warm button."""
 
-    _attr_name = "Turn off Keep-warm"
-    _attr_unique_id = "turn_off_keep_warm"
-    _attr_unique_name = "turn_off_keep_warm"
+    _attr_name = "Turn off warming"
+    _attr_unique_name = "turn_off_warm"
     _attr_icon = "mdi:thermometer-off"

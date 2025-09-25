@@ -43,13 +43,13 @@ async def async_setup_entry(
 class MiKettleSensor(SensorEntity):
     """Base sensor entity for MiKettle devices."""
 
-    _attr_unique_id = "no set"
+    _attr_unique_name = "no set"
     _status_key = "no set"
 
     def __init__(self, entry):
         """Initialize the sensor."""
         self._entry = entry
-        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_id)
+        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_name)
         self._attr_unique_id = self.entity_id
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},
@@ -105,8 +105,8 @@ class MiKettleProStatusSensor(MiKettleSensor):
     """Representation of a Mi Kettle Pro status sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Status"
-    _attr_unique_id = "status"
+    _attr_name = "Device Status"
+    _attr_unique_name = "status"
     _status_key = "action"
 
     @property
@@ -128,7 +128,7 @@ class MiKettleProCurrentTemperatureSensor(MiKettleSensor):
     _attr_name = "Current Temperature"
     _attr_device_class = "temperature"
     _attr_state_class = SensorStateClass.MEASUREMENT
-    _attr_unique_id = "current_temperature"
+    _attr_unique_name = "current_temperature"
     _status_key = "current_temperature"
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
@@ -156,19 +156,19 @@ class MiKettleProCurrentTemperatureSensor(MiKettleSensor):
         """Return the native value of the sensor."""
         return self._attr_native_value
 
-class MiKettleProControllableSensor(MiKettleSensor):
+class MiKettleProOperationModeSensor(MiKettleSensor):
     """Representation of a Mi Kettle Pro controllable sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Controllable"
-    _attr_unique_id = "controllable"
+    _attr_name = "Operational Mode"
+    _attr_unique_id = "operational_mode"
     _status_key = "action"
     _attr_icon = "mdi:remote"
 
     @property
     def native_value(self) -> StateType:
         """Return the current status value."""
-        return "yes" if self._attr_native_value else "no"
+        return "control" if self._attr_native_value else "monitor"
 
     def _handle_status_update(self, status_data: dict) -> None:
         """Handle status updates from Bluetooth manager."""

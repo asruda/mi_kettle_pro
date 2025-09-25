@@ -9,8 +9,8 @@
           "mac": "MAC Address",
           "device_token": "Device Token",
           "device_name": "Device Name",
-          "boil_temperature": "Boil Temperature",
-          "warm_temperature": "Warm Temperature",
+          "heat_temperature": "Set Heating Temperature",
+          "warm_temperature": "Set Warming Temperature",
           "poll_interval": "Poll Interval (seconds)",
           "temperature_unit": "Temperature Unit"
         }
@@ -20,7 +20,7 @@
       "invalid_mac_format": "Invalid MAC address format. Should be 12 characters (with or without separators)",
       "invalid_device_token_format": "Invalid device token format. Must be a 24-character hexadecimal string",
       "invalid_poll_interval": "Poll interval must be between 10 and 300 seconds",
-      "invalid_boil_temperature": "Boil temperature must be between 50 and 90°C",
+      "invalid_heat_temperature": "Heat temperature must be between 50 and 90°C",
       "invalid_warm_temperature": "Warm temperature must be between 40 and 80°C",
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
@@ -40,7 +40,7 @@
           "device_token": "Device Token",
           "poll_interval": "Poll Interval (seconds)",
           "temperature_unit": "Temperature Unit",
-          "boil_temperature": "Boil Temperature",
+          "heat_temperature": "Heat Temperature",
           "warm_temperature": "Warm Temperature"
         }
       }
@@ -58,7 +58,7 @@
       }
     },
     "number": {
-      "boil_temperature": "Boil Temperature",
+      "heat_temperature": "Heat Temperature",
       "warm_temperature": "Warm Temperature"
     },
     "switch": {
@@ -68,13 +68,13 @@
       "controllable": "Controllable"
     },
     "button": {
-      "boil": "Boil",
+      "heat": "Heat",
       "warm": "Warm",
-      "turn_off_boil": "Turn off Boil",
+      "turn_off_heat": "Turn off Heat",
       "turn_off_keep_warm": "Turn off Keep-warm"
     },
     "time": {
-      "scheduled_boil": "Scheduled Boil"
+      "scheduled_heat": "Scheduled Heat"
     }
   }
 }

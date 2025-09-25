@@ -7,8 +7,8 @@
       "invalid_mac_format": "Invalid MAC address format. Should be 12 characters (with or without separators)",
       "invalid_device_token_format": "Invalid device token format. Must be a 24-character hexadecimal string",
       "invalid_poll_interval": "Poll interval must be between 10 and 300 seconds",
-      "invalid_boil_temperature": "Boil temperature must be between 50 and 100°C",
-      "invalid_warm_temperature": "Warm temperature must be between 10 and 80°C",
+      "invalid_heat_temperature": "Heating temperature must be between 50 and 100°C",
+      "invalid_warm_temperature": "Warming temperature must be between 10 and 80°C",
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error"
@@ -22,8 +22,8 @@
           "mac": "MAC Address",
           "device_token": "Device Token",
           "device_name": "Device Name",
-          "boil_temperature": "Boil Temperature",
-          "warm_temperature": "Warm Temperature",
+          "heat_temperature": "Set Heating Temperature",
+          "warm_temperature": "Set Warming Temperature",
           "poll_interval": "Poll Interval (seconds)",
           "temperature_unit": "Temperature Unit"
         }
@@ -42,8 +42,8 @@
       }
     },
     "number": {
-      "boil_temperature": "Boil Temperature",
-      "warm_temperature": "Warm Temperature"
+      "heat_temperature": "Heating Temperature",
+      "warm_temperature": "Warming Temperature"
     },
     "switch": {
       "auto_keep_warm": "Auto Keep-warm after Lift-off"
@@ -52,13 +52,13 @@
       "controllable": "Controllable"
     },
     "button": {
-      "boil": "Boil",
-      "warm": "Warm",
-      "turn_off_boil": "Turn off Boil",
-      "turn_off_keep_warm": "Turn off Keep-warm"
+      "heat": "Heat",
+      "warm": "Keep Warm",
+      "turn_off_heating": "Turn off Heating",
+      "turn_off_keep_warm": "Turn off Warming"
     },
     "time": {
-      "scheduled_boil": "Scheduled Boil"
+      "scheduled_heating": "Scheduled Heating"
     }
   },
   "options": {
@@ -71,8 +71,8 @@
           "device_token": "Device Token",
           "poll_interval": "Poll Interval (seconds)",
           "temperature_unit": "Temperature Unit",
-          "boil_temperature": "Boil Temperature",
-          "warm_temperature": "Warm Temperature"
+          "heat_temperature": "Heating Temperature",
+          "warm_temperature": "Warming Temperature"
         }
       }
     }

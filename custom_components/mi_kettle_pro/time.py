@@ -33,18 +33,18 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class MiKettleProScheduledBoilTime(TimeEntity):
-    """Representation of a Mi Kettle Pro scheduled boil time entity."""
+class MiKettleProScheduledHeatTime(TimeEntity):
+    """Representation of a Mi Kettle Pro scheduled heat time entity."""
 
     _attr_has_entity_name = True
-    _attr_name = "Scheduled Boil"
-    _attr_unique_id = "scheduled_boil"
+    _attr_name = "Scheduled Heat"
+    _attr_unique_name = "scheduled_heat"
     _attr_icon = "mdi:clock-outline"
 
     def __init__(self, entry: ConfigEntry) -> None:
-        """Initialize the scheduled boil time entity."""
+        """Initialize the scheduled heat time entity."""
         self._entry = entry
-        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_id)
+        self.entity_id = gen_entity_id(entry, PLATFORM, self._attr_unique_name)
         self._attr_unique_id = self.entity_id
         self._attr_device_info = {
             "identifiers": {(DOMAIN, entry.entry_id)},

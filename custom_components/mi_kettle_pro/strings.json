@@ -1,0 +1,80 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Mi Kettle Pro",
+        "description": "Enter your Mi Kettle Pro device details",
+        "data": {
+          "bt_interface": "Bluetooth Adapter",
+          "mac": "MAC Address",
+          "device_token": "Device Token",
+          "device_name": "Device Name",
+          "boil_temperature": "Boil Temperature",
+          "warm_temperature": "Warm Temperature",
+          "poll_interval": "Poll Interval (seconds)",
+          "temperature_unit": "Temperature Unit"
+        }
+      }
+    },
+    "error": {
+      "invalid_mac_format": "Invalid MAC address format. Should be 12 characters (with or without separators)",
+      "invalid_device_token_format": "Invalid device token format. Must be a 24-character hexadecimal string",
+      "invalid_poll_interval": "Poll interval must be between 10 and 300 seconds",
+      "invalid_boil_temperature": "Boil temperature must be between 50 and 90°C",
+      "invalid_warm_temperature": "Warm temperature must be between 40 and 80°C",
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Mi Kettle Pro Options",
+        "description": "Configure device options",
+        "data": {
+          "bt_interface": "Bluetooth Adapter",
+          "device_token": "Device Token",
+          "poll_interval": "Poll Interval (seconds)",
+          "temperature_unit": "Temperature Unit",
+          "boil_temperature": "Boil Temperature",
+          "warm_temperature": "Warm Temperature"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": "Status",
+      "current_temperature": "Current Temperature",
+      "state": {
+        "idle": "Idle",
+        "heating": "Heating",
+        "keeping warm": "Keeping Warm",
+        "cooling": "Cooling"
+      }
+    },
+    "number": {
+      "boil_temperature": "Boil Temperature",
+      "warm_temperature": "Warm Temperature"
+    },
+    "switch": {
+      "auto_keep_warm": "Auto Keep-warm after Lift-off"
+    },
+    "event": {
+      "controllable": "Controllable"
+    },
+    "button": {
+      "boil": "Boil",
+      "warm": "Warm",
+      "turn_off_boil": "Turn off Boil",
+      "turn_off_keep_warm": "Turn off Keep-warm"
+    },
+    "time": {
+      "scheduled_boil": "Scheduled Boil"
+    }
+  }
+}

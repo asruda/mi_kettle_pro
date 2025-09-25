@@ -1,0 +1,15 @@
+{
+  "domain": "mi_kettle_pro",
+  "name": "Mi Kettle Pro",
+  "codeowners": ["@asruda"],
+  "config_flow": true,
+  "dependencies": ["bluetooth_adapters"],
+  "documentation": "https://github.com/asruda/mi_kettle_pro",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "quality_scale": "bronze",
+  "requirements": ["bleak-retry-connector>=3.9.0", "bleak>=0.22.3"],
+  "ssdp": [],
+  "zeroconf": [],
+  "version": "v0.1.0"
+}

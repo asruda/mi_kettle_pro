@@ -1,0 +1,80 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "设备已配置"
+    },
+    "error": {
+      "invalid_mac_format": "MAC地址格式无效。应为12个字符（带或不带分隔符）",
+      "invalid_device_token_format": "设备令牌格式无效。必须为24位十六进制字符串",
+      "invalid_poll_interval": "轮询间隔必须在10到300秒之间",
+      "invalid_boil_temperature": "煮沸温度必须在50到100°C之间",
+      "invalid_warm_temperature": "保温温度必须在10到80°C之间",
+      "cannot_connect": "连接失败",
+      "invalid_auth": "认证无效",
+      "unknown": "未知错误"
+    },
+    "step": {
+      "user": {
+        "title": "配置米家智能电水壶 Pro",
+        "description": "输入您的米家智能电水壶 Pro 设备详情",
+        "data": {
+          "bt_interface": "蓝牙接口",
+          "mac": "MAC地址",
+          "device_token": "设备令牌",
+          "device_name": "设备名称",
+          "boil_temperature": "煮沸温度",
+          "warm_temperature": "保温温度",
+          "poll_interval": "轮询间隔（秒）",
+          "temperature_unit": "温度单位"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": "当前状态",
+      "current_temperature": "当前温度",
+      "state": {
+        "idle": "空闲",
+        "heating": "加热中",
+        "keeping warm": "保温中",
+        "cooling": "冷却中"
+      }
+    },
+    "number": {
+      "boil_temperature": "煮沸温度",
+      "warm_temperature": "保温温度"
+    },
+    "switch": {
+      "auto_keep_warm": "提壶后保温"
+    },
+    "event": {
+      "controllable": "是否可控制"
+    },
+    "button": {
+      "boil": "加热",
+      "warm": "保温",
+      "turn_off_boil": "终止加热",
+      "turn_off_keep_warm": "关闭保温"
+    },
+    "time": {
+      "scheduled_boil": "定时加热时间"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "米家智能电水壶 Pro 选项",
+        "description": "配置设备选项",
+        "data": {
+          "bt_interface": "蓝牙接口",
+          "device_token": "设备令牌",
+          "poll_interval": "轮询间隔（秒）",
+          "temperature_unit": "温度单位",
+          "boil_temperature": "煮沸温度",
+          "warm_temperature": "保温温度"
+        }
+      }
+    }
+  }
+}

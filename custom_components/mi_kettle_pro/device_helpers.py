@@ -52,7 +52,7 @@ class MiKettleProManager:
     async def async_setup(self) -> bool:
         device_name = await self.async_fetch_device_name()
         if not self.device_model:
-            self.device_model = self.get_device_model(device_name)
+            self.device_model = get_device_model(device_name)
         if self.device_model in SUPPORTED_DEVICES:
             # cache device model in options
             new_options = {

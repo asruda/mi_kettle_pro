@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -13,6 +14,8 @@ from .const import (
         CONNECTION_TYPE,
     )
 
+
+_LOGGER = logging.getLogger(__name__)
 
 _PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -50,6 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             return True
     except Exception as e:
         msg = f"Fail to async_setup_entry, except: {e}"
+        _LOGGER.exception(msg)
         raise ConfigEntryNotReady(msg) from e
     return False
 

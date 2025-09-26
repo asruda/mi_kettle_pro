@@ -45,6 +45,7 @@ class MiKettleProBaseButton(ButtonEntity):
     """Base class for Mi Kettle Pro button entities."""
     _attr_has_entity_name = True
     _attr_unique_name = "no set"
+    _device_manager = None
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize the base button entity."""
@@ -65,23 +66,22 @@ class MiKettleProBaseButton(ButtonEntity):
         device_manager_key = f"{self._entry.entry_id}_device_manager"
         self._device_manager = self._hass.data[DOMAIN].get(device_manager_key)
 
-        # 注册可用性事件监听器
-        self._listener = self.hass.bus.async_listen(
-            AVAIL_EVENT,
-            self._handle_availability_changed
-        )
+        if self._device_manager:
+            self._device_manager.device_parser.register_status_callback(
+                self._handle_status_update
+            )
 
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
-        # 移除可用性事件监听器
-        if self._listener:
-            self._listener()
+        if self._device_manager:
+            self._device_manager.device_parser.unregister_status_callback(
+                self._handle_status_update
+            )
 
-    def _handle_availability_changed(self, event) -> None:
-        """Handle availability change events."""
-        if event.data.get(AVAIL_EVENT_KEY_ENTRY_ID) == self._entry.entry_id:
-            # enable if login into device
-            self._attr_available = event.data.get(
+    def _handle_status_update(self, status_data: dict) -> None:
+        """Handle status updates from Device manager."""
+        if status_data:
+            self._attr_available = status_data.get(
                 AVAIL_EVENT_KEY_IS_CONTROL, False
             )
             self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)

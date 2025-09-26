@@ -8,7 +8,7 @@
       "invalid_device_token_format": "设备令牌格式无效。必须为24位十六进制字符串",
       "invalid_poll_interval": "轮询间隔必须在10到300秒之间",
       "invalid_heat_temperature": "加热温度必须在50到100°C之间",
-      "invalid_warm_temperature": "保温温度必须在10到80°C之间",
+      "invalid_warm_temperature": "保温温度必须在10到90°C之间",
       "cannot_connect": "连接失败",
       "invalid_auth": "认证无效",
       "unknown": "未知错误"

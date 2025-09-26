@@ -6,7 +6,7 @@ import logging
 import hashlib
 import hmac
 import os
-from typing import Callable
+from collections.abc import Callable
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
@@ -52,11 +52,6 @@ _LOGGER = logging.getLogger(__name__)
 
 class MiKettlePro:
     """Manager for Mi Kettle Pro Bluetooth connection and data handling."""
-    # uuid required
-    CHECK_UUID_LIST = [
-        UUID_AUTH_INIT, UUID_AUTH, UUID_WARM_SETTING_1, UUID_WARM_SETTING_2,
-        UUID_WARM_STATUS, UUID_READ_MODE_CONFIG, UUID_WRITE_MODE_CONFIG
-    ]
     loop_active: bool
 
     def __init__(
@@ -98,7 +93,7 @@ class MiKettlePro:
         # delegate
         self.received_data = {}
 
-        # 新增：通知等待事件字典 {uuid: asyncio.Event}
+        # Notification waiting event dictionary, {uuid: asyncio.Event}
         self.notification_events = {}
 
         # Data cache
@@ -106,9 +101,26 @@ class MiKettlePro:
         self.status_data = {}
         self._status_callbacks: list[Callable[[dict], None]] = []
 
+        # uuid Characteristics
+        self.auth = UUID_AUTH
+        self.auth_init = UUID_AUTH_INIT
+        self.warm_setting_1 = UUID_WARM_SETTING_1
+        self.warm_setting_2 = UUID_WARM_SETTING_2
+        self.warm_status = UUID_WARM_STATUS
+        self.read_mode_config = UUID_READ_MODE_CONFIG
+        self.write_mode_config = UUID_WRITE_MODE_CONFIG
+
+        # Find Xiaomi private services
+        self.svc_auth = None
+        self.svc_biz_data = None
+
+        # uuid required
+        self._required_ble_uuids = [
+            UUID_AUTH_INIT, UUID_AUTH, UUID_WARM_SETTING_1, UUID_WARM_SETTING_2,
+            UUID_WARM_STATUS, UUID_READ_MODE_CONFIG, UUID_WRITE_MODE_CONFIG
+        ]        
+
         # Error handling
-        self._connection_attempts = 0
-        self._last_connection_attempt = None
         self._backoff_time = 1
 
         _LOGGER.debug(
@@ -125,13 +137,13 @@ class MiKettlePro:
                                   disconnected_callback=self._async_disconnect,
                                   timeout=self.poll_interval,
                                   adapter=self.bt_interface,
-                                  )
+                                )
 
         await self.setup_services()
         return True
 
     async def setup_services(self):
-        # 先连接设备
+        # First connect to the device
         if not self.device.is_connected:
             await self.device.connect()
 
@@ -141,34 +153,23 @@ class MiKettlePro:
             _LOGGER.error("Failed to check UUID existence: %s", exc)
             raise
 
-        self.auth = UUID_AUTH
-        self.auth_init = UUID_AUTH_INIT
-        self.warm_setting_1 = UUID_WARM_SETTING_1
-        self.warm_setting_2 = UUID_WARM_SETTING_2
-        self.warm_status = UUID_WARM_STATUS
-        self.read_mode_config = UUID_READ_MODE_CONFIG
-        self.write_mode_config = UUID_WRITE_MODE_CONFIG
         subscribe_uuid_list = [UUID_AUTH, UUID_AUTH_INIT, UUID_WARM_STATUS]
         await self.setup_notifications(subscribe_uuid_list)
         return
 
     async def setup_notifications(self, uuid_list):
         for uuid in uuid_list:
-            _LOGGER.debug("\nEnabling notifications UUID %s...", uuid)
+            _LOGGER.debug("\nEnabling notifications UUID %s", uuid)
             await self.device.start_notify(uuid, self.handle_notification)
 
     async def check_uuid_exist(self):
-        _LOGGER.debug("\nDiscovering services...")
+        _LOGGER.debug("\nDiscovering services")
         services = self.device.services
 
-        # 打印所有发现的服务
+        # Print all discovered services
         _LOGGER.debug("\nAll available services:")
         for svc in services:
             _LOGGER.debug("- %s", svc.uuid)
-
-        # 查找小米私有服务
-        self.svc_auth = None
-        self.svc_biz_data = None
 
         for svc in services:
             if str(svc.uuid).lower() == SERVICE_AUTH:
@@ -193,7 +194,7 @@ class MiKettlePro:
             _LOGGER.debug("- %s: Handle=0x%04x", char.uuid, char.handle)
             uuid_list.append(char.uuid.lower())
 
-        for uuid in self.CHECK_UUID_LIST:
+        for uuid in self._required_ble_uuids:
             if uuid not in uuid_list:
                 _LOGGER.error("\nRequired Services [%s] not found", uuid)
                 raise ValueError("Required MiKettlePRO Services not found")
@@ -218,7 +219,7 @@ class MiKettlePro:
         try:
             while self.loop_active:
                 try:
-                    # 正常的业务逻辑...
+                    # Normal business logic...
                     if not self.device or not self.device.is_connected:
                         await self._async_connect()
 
@@ -226,13 +227,13 @@ class MiKettlePro:
                         await self._async_read_status()
                         await self.heat_safe_check()
 
-                    # 使用异步等待而不是 time.sleep
+                    # Use async sleep instead of time.sleep
                     await asyncio.sleep(self.poll_interval)
 
                 except asyncio.CancelledError as exc:
                     _LOGGER.info("Cancel device loop task. %s", exc)
 
-                    # 任务被取消，重新抛出以正确终止
+                    # Task cancelled, re-raise to terminate properly
                     raise
                 except (ValueError, ConnectionError) as exc:
                     _LOGGER.error("Error in update loop: %s", exc)
@@ -240,11 +241,11 @@ class MiKettlePro:
                     self._backoff_time *= 2
 
         except asyncio.CancelledError:
-            # 任务被取消，进行清理工作
+            # Task cancelled, perform cleanup
             _LOGGER.debug("Update loop task cancelled")
             raise
         finally:
-            # 确保资源清理
+            # Ensure resource cleanup
             self._async_disconnect()
 
     async def _async_connect(self) -> None:
@@ -292,7 +293,7 @@ class MiKettlePro:
             # update_kettle_profile
             await self._async_update_kettle_mode()
 
-            # 登录成功后更新实体可用性
+            # Update entity availability after successful login
             self.update_entities_availability(True)
 
         except Exception as exc:
@@ -340,7 +341,7 @@ class MiKettlePro:
         )
         await self.write(self.auth, self._generate_rand_data(), expect_value=ACK_SUCCESS)
         _LOGGER.debug("device auth step 06 wait for DEV_PREPARE_RAND, uuid:%s", self.auth)
-        await self.handle_response(self.auth, OP_DEV_PREPARE_RAND, self._handle_dev_random)  # 处理设备随机数
+        await self.handle_response(self.auth, OP_DEV_PREPARE_RAND, self._handle_dev_random)  # Handle device random number
 
     async def _async_exchange_tokens(self) -> None:
         _LOGGER.debug("device auth step 07 wait for OP_DEV_PREPARE_TOKEN, uuid:%s", self.auth)
@@ -367,7 +368,7 @@ class MiKettlePro:
             raise ValueError("handle_result_response error")
 
     def _generate_rand_data(self):
-        """发送应用随机数"""
+        """Send application random number"""
         self.app_random = os.urandom(16)
         rand_data = b"\x01\x00" + self.app_random
         return rand_data
@@ -396,17 +397,17 @@ class MiKettlePro:
         _LOGGER.info("device:[%s], login success", self.device.address)
 
     async def _send_app_token(self):
-        """发送应用令牌"""
-        # 生成应用令牌
+        """Send application token"""
+        # Generate application token
         self.app_token = self._generate_app_token()
 
-        # 分片发送令牌
+        # Send token in fragments
         token_part1 = bytes.fromhex("0100") + self.app_token[:18]
         token_part2 = bytes.fromhex("0200") + self.app_token[18:32]
 
-        # 发送第一部分
+        # Send first part
         await self.write(self.auth, token_part1)
-        # 发送第二部分
+        # Send second part
         await self.write(self.auth, token_part2, ACK_SUCCESS, wait_single_result=False)
         return
 
@@ -414,14 +415,14 @@ class MiKettlePro:
         await self.write(self.auth, ACK_READY)
         data = await self.get_notification_data(self.auth)
         key = self._get_key_from_notify_data(data)
-        self.dev_random = key  # 提取16字节随机数
+        self.dev_random = key  # Extract 16-byte random number
         if not key:
-            msg = "获取设备随机数失败"
+            msg = "Failed to get device random number"
             _LOGGER.error(msg)
             raise ValueError(msg)
         await self.write(self.auth, ACK_SUCCESS)
 
-        # 派生会话密钥
+        # Derive session key
         return self._derive_session_key(self.app_random, self.dev_random)
 
     def _derive_session_key(self, app_rand, dev_rand):
@@ -433,7 +434,7 @@ class MiKettlePro:
             return False
         info_str = b"mible-login-info"
         combined = app_rand + dev_rand
-        # HKDF步骤
+        # HKDF steps
         hkdf = HKDF(
             algorithm=hashes.SHA256(),
             length=64,
@@ -449,26 +450,26 @@ class MiKettlePro:
 
     def verify_device_confirmation(self, device_sig):
         """
-        验证设备签名
+        Verify device signature
 
-        参数:
-            device_sig: 设备返回的签名(字节串)
+        Args:
+            device_sig: Device returned signature (bytes)
 
-        返回:
-            bool: 验证结果
+        Returns:
+            bool: Verification result
         """
 
-        # 组合随机数 (设备+客户端)
+        # Combine random numbers (device + client)
         randoms_combo = self.dev_random + self.app_random
 
-        # 计算预期签名
+        # Calculate expected signature
         expected_sig = hmac.new(
             self.session_key,
             randoms_combo,
             hashlib.sha256
         ).digest()
 
-        # 安全比较 (恒定时间)
+        # Secure comparison (constant time)
         return hmac.compare_digest(device_sig, expected_sig)
 
     def _generate_app_token(self):
@@ -505,16 +506,16 @@ class MiKettlePro:
         error_msg = ""
         if expected_length and len(data) != expected_length:
             validation_failed = True
-            error_msg = f"期望长度 {expected_length} 字节, 实际 {data_length} 字节"
+            error_msg = f"Expected length {expected_length} bytes, actual {data_length} bytes"
 
         if validation_failed:
             _LOGGER.error(
-                "特征值 %s 数据长度验证失败: %s, 数据: %s",
+                "Characteristic %s data length validation failed: %s, data: %s",
                 uuid, error_msg, data.hex()
             )
             return
 
-        _LOGGER.debug("特征值 %s 读取成功: %s (长度: %d 字节)", uuid, data.hex(), data_length)
+        _LOGGER.debug("Characteristic %s read successfully: %s (length: %d bytes)", uuid, data.hex(), data_length)
         return data
 
     async def get_notification_data(self, uuid, timeout=0, single_result=False):
@@ -543,7 +544,7 @@ class MiKettlePro:
             return
 
         action = MI_ACTION_MAP.get(int(data[0]), "unknown")
-        is_control = False if action == "idle" else True
+        is_control = True if action != "idle" and self.is_login is True else False
 
         return {
             "action": action,
@@ -566,23 +567,23 @@ class MiKettlePro:
 
     async def wait_for_notification(self, uuid, timeout=5):
         """
-        主动等待特定UUID的通知
-        :param uuid: 要等待的特征UUID
-        :param timeout: 超时时间（秒）
-        :return: True=收到通知, False=超时
+        Actively wait for notification with specific UUID
+        :param uuid: Characteristic UUID to wait for
+        :param timeout: Timeout in seconds
+        :return: True=notification received, False=timeout
         """
-        _LOGGER.debug("开始等待通知: %s, 超时=%ss", uuid, timeout)
-        # 创建或获取事件对象
+        _LOGGER.debug("Start waiting for notification: %s, timeout=%ss", uuid, timeout)
+        # Create or get event object
         if uuid not in self.notification_events or not self.notification_events[uuid]:
             self.notification_events[uuid] = asyncio.Event()
 
         try:
-            # 异步等待事件触发
+            # Asynchronously wait for event trigger
             await asyncio.wait_for(self.notification_events[uuid].wait(), timeout)
-            # _LOGGER.debug("成功收到通知: %s", uuid)
+            # _LOGGER.debug("Successfully received notification: %s", uuid)
             return True
         except asyncio.TimeoutError:
-            _LOGGER.warning("等待通知超时: %s", uuid)
+            _LOGGER.warning("Waiting for notification timeout: %s", uuid)
             return False
 
     def handle_notification(self, sender, data):
@@ -601,11 +602,11 @@ class MiKettlePro:
         if uuid == self.warm_status:
             self.cache_data = data
 
-        # 触发等待事件（如果存在）
+        # Trigger waiting event (if exists)
         if uuid in self.notification_events and self.notification_events[uuid]:
-            # _LOGGER.debug("触发通知等待事件: %s", uuid)
+            # _LOGGER.debug("Trigger notification waiting event: %s", uuid)
             self.notification_events[uuid].set()
-            # 单次触发后清除事件引用
+            # Clear event reference after single trigger
             self.notification_events[uuid] = None
 
     async def write(self, uuid, data, expect_value=None, wait_single_result=True):
@@ -648,38 +649,38 @@ class MiKettlePro:
         self.received_data = {}
         self.notification_events = {}
         _LOGGER.debug("Disconnected from device")
-        # 断开连接后更新实体可用性
+        # Update entity availability after disconnection
         self.update_entities_availability(False)
 
     async def _async_update_kettle_mode(self):
-        """更新水壶配置，获取温度设置值"""
+        """Update kettle configuration, get temperature settings"""
         def _get_temp_by_entity_id(entity_id):
             temp_state = self.hass.states.get(entity_id)
             temperature = None
-            # 解析温度
+            # Parse temperature
             if temp_state and temp_state.state not in ("unknown", "unavailable"):
                 try:
                     temperature = int(temp_state.state)
                     _LOGGER.debug(
-                        "获取到温度设置: temperature: %s, entity_id: %s",
+                        "Got temperature setting: temperature: %s, entity_id: %s",
                         temperature, entity_id
                     )
                 except ValueError:
                     _LOGGER.warning(
-                        "无效的温度值: %s, entity_id: %s",
+                        "Invalid temperature value: %s, entity_id: %s",
                         temp_state.state, entity_id
                     )
                     raise
             return temperature
 
         try:
-            # 获取加热温度
+            # Get heating temperature
             heat_temperature = _get_temp_by_entity_id(self.heat_temp_entity_id)
 
-            # 获取保温温度
+            # Get warming temperature
             warm_temperature = _get_temp_by_entity_id(self.warm_temp_entity_id)
             _LOGGER.debug(
-                "get temperature entity, heat: %s, warm: %s",
+                "get temperature from entity, heat: %s, warm: %s",
                 heat_temperature, warm_temperature
             )
 
@@ -700,21 +701,21 @@ class MiKettlePro:
             )
 
         except Exception as exc:
-            _LOGGER.error("获取温度设置失败: %s", exc)
+            _LOGGER.error("Failed to get temperature settings: %s", exc)
             return None
 
     def replace_mode_segment(self, current_data, mode_index, new_mode_data):
-        """替换设备模式配置中的指定段数据
+        """Replace specified segment data in device mode configuration
 
         Args:
-            current_data: 10字节的原始数据（5段，每段2字节）
-            mode_index: 要修改的段索引（0-4）
-            new_mode_data: 新的段数据（2字节）
+            current_data: 10-byte original data (5 segments, 2 bytes each)
+            mode_index: Segment index to modify (0-4)
+            new_mode_data: New segment data (2 bytes)
 
         Returns:
-            bytes: 修改后的10字节数据
+            bytes: Modified 10-byte data
         """
-        # 验证数据长度
+        # Validate data length
         if len(current_data) != 10:
             _LOGGER.error("Invalid current_data length: expected 10 bytes, got %d", len(current_data))
             raise
@@ -723,19 +724,19 @@ class MiKettlePro:
             _LOGGER.error("Invalid new_mode_data length: expected 2 bytes, got %d", len(new_mode_data))
             raise
 
-        # 将数据分成5段，每段2字节
+        # Split data into 5 segments, 2 bytes each
         segments = [
-            current_data[0:2],  # 段0
-            current_data[2:4],  # 段1
-            current_data[4:6],  # 段2
-            current_data[6:8],  # 段3
-            current_data[8:10]  # 段4
+            current_data[0:2],  # Segment 0
+            current_data[2:4],  # Segment 1
+            current_data[4:6],  # Segment 2
+            current_data[6:8],  # Segment 3
+            current_data[8:10]  # Segment 4
         ]
 
-        # 替换指定段的数据
+        # Replace specified segment data
         segments[mode_index] = new_mode_data
 
-        # 重新组合所有段
+        # Recombine all segments
         modified_data = b"".join(segments)
 
         _LOGGER.debug("Mode data subsituted: index=%d, new_data=%s, result=%s",
@@ -744,27 +745,27 @@ class MiKettlePro:
         return modified_data
 
     def read_mode_segment(self, current_data, mode_index):
-        """搜索设备模式配置中的指定段数据
+        """Search for specified segment data in device mode configuration
 
         Args:
-            current_data: 10字节的原始数据（5段，每段2字节）
-            mode_index: 要修改的段索引（0-4）
+            current_data: 10-byte original data (5 segments, 2 bytes each)
+            mode_index: Segment index to modify (0-4)
 
         Returns:
-            bytes: 修改后的2字节数据
+            bytes: Modified 2-byte data
         """
-        # 验证数据长度
+        # Validate data length
         if len(current_data) != 10:
             _LOGGER.error("Invalid current_data length: expected 10 bytes, got %d", len(current_data))
             raise
 
-        # 将数据分成5段，每段2字节
+        # Split data into 5 segments, 2 bytes each
         segments = [
-            current_data[0:2],  # 段0
-            current_data[2:4],  # 段1
-            current_data[4:6],  # 段2
-            current_data[6:8],  # 段3
-            current_data[8:10]  # 段4
+            current_data[0:2],  # Segment 0
+            current_data[2:4],  # Segment 1
+            current_data[4:6],  # Segment 2
+            current_data[6:8],  # Segment 3
+            current_data[8:10]  # Segment 4
         ]
 
         ret = segments[mode_index]
@@ -818,19 +819,19 @@ class MiKettlePro:
         }
 
     def update_entities_availability(self, available: bool) -> None:
-        """通过事件通知所有实体更新可用性"""
+        """Notify all entities to update availability via event"""
         if not self.entry_id:
-            _LOGGER.warning("无法更新实体可用性：设备Entry ID未设置")
+            _LOGGER.warning("Cannot update entity availability: Device Entry ID not set")
             return
 
         event_data = {
             AVAIL_EVENT_KEY_ENTRY_ID: self.entry_id,
             AVAIL_EVENT_KEY_AVAIL: available,
             AVAIL_EVENT_KEY_IS_LOGIN: self.is_login,
-            AVAIL_EVENT_KEY_IS_CONTROL: self.status_data.get(AVAIL_EVENT_KEY_IS_CONTROL, False)
         }
         self.hass.bus.async_fire(AVAIL_EVENT, event_data)
-        _LOGGER.debug("发布可用性事件: 设备 %s 可用性=%s", self.entry_id, available)
+        _LOGGER.debug("Published availability event: Device %s event_data=%r status_data=%r", 
+                      self.entry_id, event_data, self.status_data)
 
     async def action_async(self, action):
         warm_after_boil_bytes = self.status_data["warm_after_boil_raw"].to_bytes()
@@ -841,10 +842,10 @@ class MiKettlePro:
             await self.write(self.warm_setting_1, bytes.fromhex("03") + warm_after_boil_bytes)
         elif action == "turn_off_keep_warm":
             mode = self.get_current_mode()
-            if mode:
+            if mode >= 0 and mode <= 4:
                 await self.write(self.warm_setting_1, int(mode).to_bytes() + bytes.fromhex("00"))
             else:
-                _LOGGER.error("Failed to turn off_keep_warm.")
+                _LOGGER.error("Failed to turn off_keep_warm, mode[%s] not range from 0 to 4", mode)
 
     def get_current_mode(self):
         """get current warm mode"""
@@ -853,11 +854,11 @@ class MiKettlePro:
             return
         mode = status_data.get("mode", None)
         if not mode >= 0:
-            _LOGGER.error("get_current_mode failed, mode: %s", mode)
+            _LOGGER.error("Get_current_mode failed, mode: %s", mode)
         return mode
 
     async def _monitor_for_temperature(self, target_temp, callback: Callable):
-        """监控直到达到目标温度"""
+        """Monitor until target temperature is reached"""
         status = self._parse_status_data(self.cache_data)
         if status and status.get("current_temperature") >= target_temp:
             _LOGGER.debug("current temperature: %s", status.get("current_temperature"))

@@ -70,7 +70,7 @@ class MiKettleSensor(SensorEntity):
                 self._handle_status_update
             )
 
-        # 注册可用性事件监听器
+        # Register availability event listener
         self._listener = self.hass.bus.async_listen(
             AVAIL_EVENT,
             self._handle_availability_changed
@@ -83,7 +83,7 @@ class MiKettleSensor(SensorEntity):
                 self._handle_status_update
             )
 
-        # 移除可用性事件监听器
+        # Remove availability event listener
         if self._listener:
             self._listener()
 
@@ -116,8 +116,8 @@ class MiKettleProStatusSensor(MiKettleSensor):
         if original_value is None:
             return None
 
-        # 使用翻译键，Home Assistant 会自动处理翻译
-        # 翻译键格式: entity.sensor.state.{status_value}
+        # Use translation keys, Home Assistant will handle translation automatically
+        # Translation key format: entity.sensor.state.{status_value}
         return original_value
 
 

@@ -8,7 +8,7 @@
       "invalid_device_token_format": "Invalid device token format. Must be a 24-character hexadecimal string",
       "invalid_poll_interval": "Poll interval must be between 10 and 300 seconds",
       "invalid_heat_temperature": "Heating temperature must be between 50 and 100°C",
-      "invalid_warm_temperature": "Warming temperature must be between 10 and 80°C",
+      "invalid_warm_temperature": "Warming temperature must be between 10 and 90°C",
       "cannot_connect": "Failed to connect",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error"

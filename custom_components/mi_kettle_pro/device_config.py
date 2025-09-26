@@ -18,7 +18,7 @@ class DeviceConfig(TypedDict):
     manufacturer: str
     entities: list[DeviceEntityConfig]
 
-# 设备配置映射表
+# Device configuration mapping table
 DEVICE_CONFIGS: dict[str, DeviceConfig] = {
     "mi_kettle_pro": {
         "name": "Mi Kettle Pro",

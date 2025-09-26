@@ -51,7 +51,7 @@ UUID_WARM_STATUS: Final = "0000aa02-0000-1000-8000-00805f9b34fb"
 UUID_READ_MODE_CONFIG: Final = "0000aa03-0000-1000-8000-00805f9b34fb"
 UUID_WRITE_MODE_CONFIG: Final = "0000aa04-0000-1000-8000-00805f9b34fb"
 
-# Protocol constants
+# Auth Protocol constants
 OP_AUTH_INIT_1: Final = bytes.fromhex("a4")
 OP_AUTH_INIT_2: Final = bytes.fromhex("24000000")
 OP_PREPARE_RAND: Final = bytes.fromhex("0000000b0100")

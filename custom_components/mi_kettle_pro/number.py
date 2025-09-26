@@ -18,6 +18,8 @@ from .const import (
     MAX_HEAT_TEMPERATURE,
     MIN_WARM_TEMPERATURE,
     MAX_WARM_TEMPERATURE,
+    DEFAULT_HEAT_TEMPERATURE,
+    DEFAULT_WARM_TEMPERATURE,
 )
 from .utils import gen_entity_id
 from .device_config import DEVICE_CONFIGS
@@ -52,6 +54,7 @@ class MiKettleProBaseNumber(NumberEntity):
     _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
     _attr_unique_name = "no set"
     _device_manager = None
+    _default_value = 50
 
     def __init__(self, entry: ConfigEntry) -> None:
         """Initialize the base number entity."""
@@ -65,14 +68,14 @@ class MiKettleProBaseNumber(NumberEntity):
             "model": "Mi Kettle Pro",
         }
 
-        # 防抖相关属性
+        # Debounce related attributes
         self._debounce_timer = None
         self._debounce_delay = 0.5
         self._pending_value = None
 
         # value
         self._attr_native_value = int(
-            entry.options.get(self.option_key, entry.data.get(self.option_key))
+            entry.options.get(self.option_key, entry.data.get(self.option_key, self._default_value))
         )
 
     async def async_added_to_hass(self) -> None:
@@ -81,12 +84,12 @@ class MiKettleProBaseNumber(NumberEntity):
         self._device_manager = self.hass.data[DOMAIN].get(device_manager_key)
 
     async def _async_debounced_set_value(self, value: int) -> None:
-        """防抖后的实际设置值方法"""
-        # 取消之前的定时器
+        """Actual set value method after debounce"""
+        # Cancel previous timer
         if self._debounce_timer:
             self._debounce_timer.cancel()
 
-        # 设置新的定时器
+        # Set new timer
         self._debounce_timer = self.hass.loop.call_later(
             self._debounce_delay,
             lambda: self.hass.async_create_task(self._async_apply_value(value))
@@ -97,7 +100,7 @@ class MiKettleProBaseNumber(NumberEntity):
         await self._async_debounced_set_value(value)
 
     async def _async_apply_value(self, value: int) -> None:
-        """实际应用值的逻辑"""
+        """Actual logic for applying the value"""
         self._attr_native_value = int(value)
         await self._device_manager.device_parser.modify_mode_config_by_index(
             self._attr_unique_name, self._attr_native_value
@@ -105,7 +108,7 @@ class MiKettleProBaseNumber(NumberEntity):
         self.async_write_ha_state()
         self._debounce_timer = None
 
-        # 更新配置条目的 options 中的温度设置
+        # Update temperature settings in config entry options
         new_options = {**self._entry.options, self.option_key: int(value)}
         self.hass.config_entries.async_update_entry(
             self._entry,
@@ -120,6 +123,7 @@ class MiKettleProHeatTemperatureNumber(MiKettleProBaseNumber):
     _attr_unique_name = "heat_temperature"
     _attr_native_min_value = MIN_HEAT_TEMPERATURE
     _attr_native_max_value = MAX_HEAT_TEMPERATURE
+    _default_value = DEFAULT_HEAT_TEMPERATURE
     _attr_native_step = 1.0
     _attr_icon = "mdi:thermometer-high"
 
@@ -132,6 +136,6 @@ class MiKettleProWarmTemperatureNumber(MiKettleProBaseNumber):
     _attr_unique_name = "warm_temperature"
     _attr_native_min_value = MIN_WARM_TEMPERATURE
     _attr_native_max_value = MAX_WARM_TEMPERATURE
+    _default_value = DEFAULT_WARM_TEMPERATURE
     _attr_native_step = 1.0
     _attr_icon = "mdi:water-thermometer"
-

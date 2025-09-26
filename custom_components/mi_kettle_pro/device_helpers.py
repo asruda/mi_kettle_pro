@@ -69,10 +69,10 @@ class MiKettleProManager:
         domain_data = f"{self.entry.entry_id}_device_model"
         self.hass.data[DOMAIN][domain_data] = self.device_model
 
-        # 创建设备实例
+        # Create device instance
         if self.device_model == "mi_kettle_pro":
             _LOGGER.info(
-                "async_setup device success, mac %s, device_name %s, "
+                "Setup device success, mac %s, device_name %s, "
                 "use %s as device parser",
                 self.mac_address,
                 ble_client.name,
@@ -117,7 +117,8 @@ class MiKettleProManager:
             try:
                 await self._update_task
             except asyncio.CancelledError:
-                pass  # 任务取消是预期的
+                # Task cancellation is expected
+                pass
         self.device_parser.loop_active = False
         await self.device_parser.async_disconnect()
 
@@ -152,7 +153,7 @@ class MiKettleProManager:
         return ble_client
 
     async def get_advertisement_data(self, timeout=10, adapter=None):
-        """获取设备的广播包数据"""
+        """Get device advertisement data"""
         target_mac = self.mac_address.upper()
         advertisement_data = None
 
@@ -186,7 +187,7 @@ class MiKettleProManager:
         return None
 
     def _parse_advertisement_data(self, adv_data):
-        """解析广播包数据"""
+        """Parse advertisement data"""
         if not adv_data:
             return None
 
@@ -199,7 +200,7 @@ class MiKettleProManager:
             "service_uuids": adv_data.service_uuids or [],
         }
 
-        # 解析制造商数据
+        # Parse manufacturer data
         if adv_data.manufacturer_data:
             for manufacturer_id, data in adv_data.manufacturer_data.items():
                 parsed_data["manufacturer_data"][manufacturer_id] = {
@@ -208,7 +209,7 @@ class MiKettleProManager:
                     "data": list(data)
                 }
 
-        # 解析服务数据
+        # Parse service data
         if adv_data.service_data:
             for service_uuid, data in adv_data.service_data.items():
                 parsed_data["service_data"][service_uuid] = {
@@ -217,7 +218,7 @@ class MiKettleProManager:
                     "data": list(data)
                 }
 
-        # 特别解析小米数据（如果存在）
+        # Special parsing for Xiaomi data (if exists)
         if 0xFE95 in parsed_data["manufacturer_data"]:
             xiaomi_data = self._parse_xiaomi_data(
                 parsed_data["manufacturer_data"][0xFE95]["data"]
@@ -227,12 +228,12 @@ class MiKettleProManager:
         return parsed_data
 
     def _parse_xiaomi_data(self, data):
-        """解析小米设备的制造商数据"""
+        """Parse Xiaomi device manufacturer data"""
         if not data or len(data) < 5:
             return None
 
         try:
-            # 小米广播包格式解析
+            # Xiaomi advertisement packet format parsing
             frame_control = bytes(data[0:2]).hex() if len(data) >= 2 else None
             product_id = bytes(data[2:4]).hex() if len(data) >= 4 else None
             frame_counter = data[4] if len(data) >= 5 else None

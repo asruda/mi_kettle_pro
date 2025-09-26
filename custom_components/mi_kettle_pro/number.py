@@ -20,6 +20,7 @@ from .const import (
     MAX_WARM_TEMPERATURE,
     DEFAULT_HEAT_TEMPERATURE,
     DEFAULT_WARM_TEMPERATURE,
+    AVAIL_EVENT_KEY_IS_CONTROL,
 )
 from .utils import gen_entity_id
 from .device_config import DEVICE_CONFIGS
@@ -83,6 +84,23 @@ class MiKettleProBaseNumber(NumberEntity):
         device_manager_key = f"{self._entry.entry_id}_device_manager"
         self._device_manager = self.hass.data[DOMAIN].get(device_manager_key)
 
+    async def async_added_to_hass(self) -> None:
+        """Run when entity about to be added to hass."""
+        device_manager_key = f"{self._entry.entry_id}_device_manager"
+        self._device_manager = self.hass.data[DOMAIN].get(device_manager_key)
+
+        if self._device_manager:
+            self._device_manager.device_parser.register_status_callback(
+                self._handle_status_update
+            )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Run when entity will be removed from hass."""
+        if self._device_manager:
+            self._device_manager.device_parser.unregister_status_callback(
+                self._handle_status_update
+            )
+
     async def _async_debounced_set_value(self, value: int) -> None:
         """Actual set value method after debounce"""
         # Cancel previous timer
@@ -114,6 +132,14 @@ class MiKettleProBaseNumber(NumberEntity):
             self._entry,
             options=new_options
         )
+
+    def _handle_status_update(self, status_data: dict) -> None:
+        """Handle status updates from Device manager."""
+        if status_data:
+            self._attr_available = status_data.get(
+                AVAIL_EVENT_KEY_IS_CONTROL, False
+            )
+            self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)        
 
 class MiKettleProHeatTemperatureNumber(MiKettleProBaseNumber):
     """Representation of a Mi Kettle Pro heat temperature number entity."""

@@ -12,5 +12,5 @@
   "requirements": ["bleak-retry-connector>=3.9.0", "bleak>=0.22.3"],
   "ssdp": [],
   "zeroconf": [],
-  "version": "v0.2.0"
+  "version": "v0.2.1"
 }

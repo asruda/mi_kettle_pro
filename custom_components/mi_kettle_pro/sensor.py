@@ -174,6 +174,5 @@ class MiKettleProOperationModeSensor(MiKettleSensor):
         """Handle status updates from Bluetooth manager."""
         if status_data:
             action = status_data.get(self._status_key, "unknown")
-            if action != "idle":
-                self._attr_native_value = True
+            self._attr_native_value = True if action != "idle" else False
             self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)

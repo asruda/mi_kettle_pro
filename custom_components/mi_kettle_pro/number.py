@@ -20,7 +20,9 @@ from .const import (
     MAX_WARM_TEMPERATURE,
     DEFAULT_HEAT_TEMPERATURE,
     DEFAULT_WARM_TEMPERATURE,
-    AVAIL_EVENT_KEY_IS_CONTROL,
+    AVAIL_EVENT,
+    AVAIL_EVENT_KEY_ENTRY_ID,
+    AVAIL_EVENT_KEY_AVAIL,
 )
 from .utils import gen_entity_id
 from .device_config import DEVICE_CONFIGS
@@ -68,10 +70,10 @@ class MiKettleProBaseNumber(NumberEntity):
             "manufacturer": "Xiaomi",
             "model": "Mi Kettle Pro",
         }
-
+        self._listener = None
         # Debounce related attributes
         self._debounce_timer = None
-        self._debounce_delay = 0.5
+        self._debounce_delay = 0.8
         self._pending_value = None
 
         # value
@@ -84,22 +86,16 @@ class MiKettleProBaseNumber(NumberEntity):
         device_manager_key = f"{self._entry.entry_id}_device_manager"
         self._device_manager = self.hass.data[DOMAIN].get(device_manager_key)
 
-    async def async_added_to_hass(self) -> None:
-        """Run when entity about to be added to hass."""
-        device_manager_key = f"{self._entry.entry_id}_device_manager"
-        self._device_manager = self.hass.data[DOMAIN].get(device_manager_key)
-
-        if self._device_manager:
-            self._device_manager.device_parser.register_status_callback(
-                self._handle_status_update
-            )
+        # Register availability event listener
+        self._listener = self.hass.bus.async_listen(
+            AVAIL_EVENT,
+            self._handle_availability_changed
+        )
 
     async def async_will_remove_from_hass(self) -> None:
-        """Run when entity will be removed from hass."""
-        if self._device_manager:
-            self._device_manager.device_parser.unregister_status_callback(
-                self._handle_status_update
-            )
+        # Remove availability event listener
+        if self._listener:
+            self._listener()
 
     async def _async_debounced_set_value(self, value: int) -> None:
         """Actual set value method after debounce"""
@@ -133,13 +129,11 @@ class MiKettleProBaseNumber(NumberEntity):
             options=new_options
         )
 
-    def _handle_status_update(self, status_data: dict) -> None:
-        """Handle status updates from Device manager."""
-        if status_data:
-            self._attr_available = status_data.get(
-                AVAIL_EVENT_KEY_IS_CONTROL, False
-            )
-            self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)        
+    def _handle_availability_changed(self, event) -> None:
+        """Handle availability change events."""
+        if event.data.get(AVAIL_EVENT_KEY_ENTRY_ID) == self._entry.entry_id:
+            self._attr_available = event.data.get(AVAIL_EVENT_KEY_AVAIL, False)
+            self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)            
 
 class MiKettleProHeatTemperatureNumber(MiKettleProBaseNumber):
     """Representation of a Mi Kettle Pro heat temperature number entity."""

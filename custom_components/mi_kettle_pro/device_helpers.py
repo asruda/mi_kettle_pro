@@ -199,7 +199,7 @@ class MiKettleProManager:
             _LOGGER.error("Advertisement scan failed: %s", exc)
             return None
         except Exception as exc:
-            _LOGGER.error("Advertisement scan failed unexpected: %s", exc)
+            _LOGGER.exception("Advertisement scan failed unexpected: %s", exc)
             return None
         finally:
             await scanner.stop()

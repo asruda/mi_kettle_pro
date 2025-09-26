@@ -42,9 +42,10 @@ from ..const import (
     AVAIL_EVENT_KEY_AVAIL,
     AVAIL_EVENT,
     AVAIL_EVENT_KEY_IS_LOGIN,
-    AVAIL_EVENT_KEY_IS_CONTROL,
     WARM_INDEX,
     HEAT_INDEX,
+    CONF_HEAT_TEMPERATURE,
+    CONF_WARM_TEMPERATURE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,8 +72,6 @@ class MiKettlePro:
         self.poll_interval = poll_interval
         self.entry_id = entry_id
         self.entry = self.hass.config_entries.async_get_entry(self.entry_id)
-        self.heat_temp_entity_id = gen_entity_id(self.entry, "number", "heat_temperature")
-        self.warm_temp_entity_id = gen_entity_id(self.entry, "number", "warm_temperature")
         self.bt_interface = bt_interface
 
         # connection state
@@ -656,31 +655,12 @@ class MiKettlePro:
 
     async def _async_update_kettle_mode(self):
         """Update kettle configuration, get temperature settings"""
-        def _get_temp_by_entity_id(entity_id):
-            temp_state = self.hass.states.get(entity_id)
-            temperature = None
-            # Parse temperature
-            if temp_state and temp_state.state not in ("unknown", "unavailable"):
-                try:
-                    temperature = int(temp_state.state)
-                    _LOGGER.debug(
-                        "Got temperature setting: temperature: %s, entity_id: %s",
-                        temperature, entity_id
-                    )
-                except ValueError:
-                    _LOGGER.warning(
-                        "Invalid temperature value: %s, entity_id: %s",
-                        temp_state.state, entity_id
-                    )
-                    raise
-            return temperature
-
         try:
             # Get heating temperature
-            heat_temperature = _get_temp_by_entity_id(self.heat_temp_entity_id)
+            heat_temperature = self.entry.options[CONF_HEAT_TEMPERATURE]
 
             # Get warming temperature
-            warm_temperature = _get_temp_by_entity_id(self.warm_temp_entity_id)
+            warm_temperature = self.entry.options[CONF_WARM_TEMPERATURE]
             _LOGGER.debug(
                 "get temperature from entity, heat: %s, warm: %s",
                 heat_temperature, warm_temperature
@@ -704,7 +684,7 @@ class MiKettlePro:
             )
 
         except Exception as exc:
-            _LOGGER.error("Failed to get temperature settings: %s", exc)
+            _LOGGER.exception("Failed to get temperature settings: %s", exc)
             return None
 
     def replace_mode_segment(self, current_data, mode_index, new_temperature, new_duration=None):
@@ -878,12 +858,12 @@ class MiKettlePro:
     async def heat_safe_check(self):
         mode = self.get_current_mode()
         if not mode  >= 0:
-            _LOGGER.error("turn off heating failed, mode: %s", mode)
+            _LOGGER.error("Turn off heating failed, mode: %s", mode)
             return
         if mode == HEAT_INDEX:
             ret = await self.async_read_mode_config_by_index(mode)
             if not ret:
-                _LOGGER.error("turn off heating failed, ret: %s", ret)
+                _LOGGER.error("Turn off heating failed, ret: %s", ret)
                 return
             target_temp = ret["temperature"]
             _LOGGER.debug("check if mode temperature reached, mode: %s, target_temp: %s", mode, target_temp)

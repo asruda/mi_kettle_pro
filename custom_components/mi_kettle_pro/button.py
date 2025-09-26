@@ -11,6 +11,7 @@ from .const import (
     AVAIL_EVENT_KEY_ENTRY_ID,
     AVAIL_EVENT_KEY_IS_CONTROL,
     AVAIL_EVENT,
+    AVAIL_EVENT_KEY_AVAIL,
 )
 from .device_config import DEVICE_CONFIGS
 from .utils import gen_entity_id
@@ -71,12 +72,28 @@ class MiKettleProBaseButton(ButtonEntity):
                 self._handle_status_update
             )
 
+        # Register availability event listener
+        self._listener = self.hass.bus.async_listen(
+            AVAIL_EVENT,
+            self._handle_availability_changed
+        )
+
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
         if self._device_manager:
             self._device_manager.device_parser.unregister_status_callback(
                 self._handle_status_update
             )
+
+        # Remove availability event listener
+        if self._listener:
+            self._listener()
+
+    def _handle_availability_changed(self, event) -> None:
+        """Handle availability change events."""
+        if event.data.get(AVAIL_EVENT_KEY_ENTRY_ID) == self._entry.entry_id:
+            self._attr_available = event.data.get(AVAIL_EVENT_KEY_AVAIL, False)
+            self.hass.loop.call_soon_threadsafe(self.async_write_ha_state)
 
     def _handle_status_update(self, status_data: dict) -> None:
         """Handle status updates from Device manager."""

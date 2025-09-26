@@ -18,7 +18,7 @@ from homeassistant.components import bluetooth
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_DEVICE_MODEL, CONF_MAC, DOMAIN
+from .const import CONF_DEVICE_MODEL, CONF_MAC, DOMAIN, CONF_BT_INTERFACE
 from .device.mikettle_pro import MiKettlePro
 from .device_config import SUPPORTED_DEVICES, get_device_model
 
@@ -36,38 +36,43 @@ class MiKettleProManager:
         self,
         hass: HomeAssistant,
         entry: ConfigEntry,
+        conn_type: str,
+
     ) -> None:
         """Initialize the Bluetooth manager."""
         self.hass = hass
         self.entry = entry
         self.mac_address = self.entry.data[CONF_MAC]
         self.device_model = self.entry.options.get(CONF_DEVICE_MODEL)
+        self.conn_type = conn_type
+        if conn_type == "ble":
+            self.bt_interface = ""
+            self.ble_client = None
 
-    async def async_setup(self, bt_interface) -> bool:
-        ble_client = await self.get_ble_client(bt_interface)
-        if not ble_client:
-            _LOGGER.error(
-                "Failed to get BLE client for device %s", self.mac_address
-            )
-            return False
-        device_name = ble_client.name
-
+    async def async_setup(self) -> bool:
+        device_name = await self.async_fetch_device_name()
         if not self.device_model:
-            self.device_model = get_device_model(device_name)
-            if self.device_model in SUPPORTED_DEVICES:
-                # device name sometimes is Mijiademo, so use cached device model
-                # if once HA get valid device name
-                new_options = {
-                    **self.entry.options,
-                    CONF_DEVICE_MODEL: self.device_model
-                }
-                self.hass.config_entries.async_update_entry(
-                    self.entry,
-                    options=new_options
-                )
+            self.device_model = self.get_device_model(device_name)
+        if self.device_model in SUPPORTED_DEVICES:
+            # cache device model in options
+            new_options = {
+                **self.entry.options,
+                CONF_DEVICE_MODEL: self.device_model
+            }
+            self.hass.config_entries.async_update_entry(
+                self.entry,
+                options=new_options
+            )
+        else:
+            msg = (
+                f"Unsupport device, mac: [{self.mac_address}], "
+                f"device_name: [{device_name}], device_model: [{self.device_model}]"
+            )
+            _LOGGER.error(msg)
+            raise MiKettleNotSupportException(msg)            
 
-        domain_data = f"{self.entry.entry_id}_device_model"
-        self.hass.data[DOMAIN][domain_data] = self.device_model
+        # store device_model
+        self.hass.data[DOMAIN][f"{self.entry.entry_id}_device_model"] = self.device_model
 
         # Create device instance
         if self.device_model == "mi_kettle_pro":
@@ -75,16 +80,16 @@ class MiKettleProManager:
                 "Setup device success, mac %s, device_name %s, "
                 "use %s as device parser",
                 self.mac_address,
-                ble_client.name,
+                device_name,
                 self.device_model
             )
             self.device_parser = MiKettlePro(
                 hass=self.hass,
-                ble_client=ble_client,
+                ble_client=self.ble_client,
                 mac_address=self.mac_address,
                 device_token=self.entry.data["device_token"],
                 poll_interval=self.entry.data.get("poll_interval", 30),
-                bt_interface=bt_interface,
+                bt_interface=self.bt_interface,
                 entry_id=self.entry.entry_id
             )
         else:
@@ -121,6 +126,23 @@ class MiKettleProManager:
                 pass
         self.device_parser.loop_active = False
         await self.device_parser.async_disconnect()
+
+    async def async_fetch_device_name(self):
+        # 获得一个能连接的蓝牙适配器
+        interface_list = self.entry.data[CONF_BT_INTERFACE]
+        if "disable" in interface_list:
+            _LOGGER.info("Bluetooth interface is disabled, device: %s", self.mac_address)
+            return False
+        for interface in interface_list:
+            client = await self.get_ble_client(interface)
+            if client:
+                self.bt_interface = interface
+                self.ble_client = client
+                return client.name
+            _LOGGER.warning("Unable to connect to device %s, bt_interface %s", 
+                            self.mac_address, interface)
+        _LOGGER.error("Unable to connect to device %s, bt_interface_list %r", 
+                      self.mac_address, interface_list)
 
     async def get_ble_client(self, bt_interface):
         ble_client = bluetooth.async_ble_device_from_address(

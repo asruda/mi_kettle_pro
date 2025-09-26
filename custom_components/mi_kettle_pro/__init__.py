@@ -10,11 +10,9 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from .device_helpers import MiKettleProManager
 from .const import (
         DOMAIN,
-        CONF_BT_INTERFACE,
+        CONNECTION_TYPE,
     )
-import logging
 
-_LOGGER = logging.getLogger(__name__)
 
 _PLATFORMS: list[Platform] = [
     Platform.SENSOR,
@@ -23,7 +21,6 @@ _PLATFORMS: list[Platform] = [
     Platform.BUTTON,
     Platform.TIME,
 ]
-
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Mi Kettle Pro from a config entry."""
@@ -37,20 +34,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         device_manager = MiKettleProManager(
             hass=hass,
             entry=entry,
+            conn_type=entry.data.get(CONNECTION_TYPE, "ble")
         )
-        interface_list = entry.data[CONF_BT_INTERFACE]
-        if "disable" in interface_list:
-            return False
-        for interface in interface_list:
-            ret = await device_manager.async_setup(interface)
-            if not ret:
-                _LOGGER.debug(
-                    "connect to device: %s failed, bt interface:%s",
-                    entry.data["mac"],
-                    interface,
-                )
-                continue
-
+        if await device_manager.async_setup():
             # Store Device manager
             hass.data[DOMAIN][f"{entry.entry_id}_device_manager"] = (
                 device_manager
@@ -62,10 +48,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 entry, _PLATFORMS
             )
             return True
-        raise Exception(
-            f"unable to connect to device: {entry.data["mac"]}, bt interface list:{interface_list}"
-        )
-
     except Exception as e:
         msg = f"Fail to async_setup_entry, except: {e}"
         raise ConfigEntryNotReady(msg) from e

@@ -177,16 +177,6 @@ class MiKettleProOptionsFlow(OptionsFlow):
                 or user_input[CONF_POLL_INTERVAL] > 300
             ):
                 errors["base"] = "invalid_poll_interval"
-            elif (
-                user_input[CONF_HEAT_TEMPERATURE] < MIN_HEAT_TEMPERATURE
-                or user_input[CONF_HEAT_TEMPERATURE] > MAX_HEAT_TEMPERATURE
-            ):
-                errors["base"] = "invalid_heat_temperature"
-            elif (
-                user_input[CONF_WARM_TEMPERATURE] < MIN_WARM_TEMPERATURE
-                or user_input[CONF_WARM_TEMPERATURE] > MAX_WARM_TEMPERATURE
-            ):
-                errors["base"] = "invalid_warm_temperature"
             elif not validate_device_token(user_input[CONF_DEVICE_TOKEN]):
                 errors["base"] = "invalid_device_token_format"
             else:

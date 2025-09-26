@@ -487,6 +487,7 @@ class MiKettlePro:
             if status_data:
                 self._notify_status_callbacks(status_data)
                 self.status_data = status_data
+                _LOGGER.debug("Poll the kettle status periodically, data: %r", status_data)
             # keep connections
             await self.wait_for_notification(self.warm_status, 5)
 
@@ -555,7 +556,7 @@ class MiKettlePro:
             "warm_after_boil_raw": int(data[6]),
             "warm_after_boil": MI_BOOL_MAP.get(int(data[6]), "unknown"),
             "warm_after_take_off": MI_BOOL_MAP.get(int(data[10]), "unknown"),
-            "keep_warm_time": self._bytes_to_int(data[7:9]),
+            # "keep_warm_time": self._bytes_to_int(data[7:9]),
         }
 
     def _bytes_to_int(self, bytes_data: bytes) -> int:
@@ -646,6 +647,7 @@ class MiKettlePro:
             client = self.device
         if client.is_connected:
             self.hass.async_create_task(client.disconnect())
+        self.status_data = {}
         self.received_data = {}
         self.notification_events = {}
         _LOGGER.debug("Disconnected from device")
@@ -687,11 +689,12 @@ class MiKettlePro:
             data = await self._async_read_characteristic(self.read_mode_config)
             if not data:
                 return
-
-            mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes() + bytes.fromhex("18"))
+            # warming mode, set keep warm duration 12hours
+            mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes(), bytes.fromhex("18"))
             if not mode_data:
                 return
-            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes()  + bytes.fromhex("18"))
+            # heat mode, set keep warm duration 30min(bytes.fromhex("01")), prevent water shortage risks caused by continuous heating in extreme conditions.
+            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes(), bytes.fromhex("01"))
             if not mode_data:
                 return
             await self.write(self.write_mode_config, mode_data)
@@ -704,7 +707,7 @@ class MiKettlePro:
             _LOGGER.error("Failed to get temperature settings: %s", exc)
             return None
 
-    def replace_mode_segment(self, current_data, mode_index, new_mode_data):
+    def replace_mode_segment(self, current_data, mode_index, new_temperature, new_duration=None):
         """Replace specified segment data in device mode configuration
 
         Args:
@@ -717,12 +720,10 @@ class MiKettlePro:
         """
         # Validate data length
         if len(current_data) != 10:
-            _LOGGER.error("Invalid current_data length: expected 10 bytes, got %d", len(current_data))
-            raise
+            raise Exception(f"Invalid current_data length: expected 10 bytes, got {len(current_data)}")
 
-        if len(new_mode_data) != 2:
-            _LOGGER.error("Invalid new_mode_data length: expected 2 bytes, got %d", len(new_mode_data))
-            raise
+        if len(new_temperature) != 1:
+            raise Exception(f"Invalid new_temperature length: expected 1 bytes, got {len(new_temperature)}")
 
         # Split data into 5 segments, 2 bytes each
         segments = [
@@ -732,6 +733,15 @@ class MiKettlePro:
             current_data[6:8],  # Segment 3
             current_data[8:10]  # Segment 4
         ]
+
+        if new_duration is None:
+            # use original config if duration unset
+            new_duration = bytes([segments[mode_index][1]])
+
+        if len(new_duration) != 1:
+            raise Exception(f"Invalid new_duration length: expected 1 bytes, got {len(new_duration)}")
+
+        new_mode_data = new_temperature + new_duration
 
         # Replace specified segment data
         segments[mode_index] = new_mode_data
@@ -791,10 +801,10 @@ class MiKettlePro:
             mode_index = WARM_INDEX
         else:
             _LOGGER.error(
-                "modify_mode_config_by_segment failed, unsupport index_desc: %s",
+                "Modify_mode_config_by_segment failed, unsupport index_desc: %s",
                 index_desc
             )
-        mode_data = self.replace_mode_segment(data, mode_index, int(temperature).to_bytes() + bytes.fromhex("18"))
+        mode_data = self.replace_mode_segment(data, mode_index, int(temperature).to_bytes())
         if not mode_data:
             return
 

@@ -15,6 +15,7 @@ CONF_BT_INTERFACE: Final = "bt_interface"
 CONF_HEAT_TEMPERATURE: Final = "heat_temperature"
 CONF_WARM_TEMPERATURE: Final = "warm_temperature"
 CONF_DEVICE_MODEL: Final = "device_model"
+CONNECTION_TYPE: Final = "connection_type"
 
 
 # Default values

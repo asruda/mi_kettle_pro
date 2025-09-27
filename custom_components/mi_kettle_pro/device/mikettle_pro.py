@@ -824,7 +824,10 @@ class MiKettlePro:
                       self.entry_id, event_data, self.status_data)
 
     async def action_async(self, action):
-        warm_after_boil_bytes = self.status_data["warm_after_boil_raw"].to_bytes()
+        try:
+            warm_after_boil_bytes = self.status_data["warm_after_boil_raw"].to_bytes()
+        except KeyError as e:
+            raise KeyError("Unable to get value:[warm_after_boil_raw]")
         if action == "heat":
             await self.write(self.warm_setting_1, bytes.fromhex("04") + warm_after_boil_bytes)
             _LOGGER.debug("start heat water")

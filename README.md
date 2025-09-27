@@ -1,7 +1,7 @@
-# Mi Smart Kettle Pro
+# Mi Kettle Pro - Home Assistant integration for remote control of the Xiaomi Mi Smart Kettle Pro
 ![Product](https://raw.githubusercontent.com/asruda/mi_kettle_pro/master/pictures/mi_kettle_pro.png)
 
-This custom component for [Home Assistant](https://www.home-assistant.io) controls the **Mi Smart Kettle Pro**. It uses Bluetooth to connect to the device, same as the Xiaomi Home app.
+This project adds support for the Xiaomi Kettle Pro to Home Assistant. It establishes a direct local connection to your kettle, which allows you to control it from anywhere using Home Assistant. Currently, it is confirmed to work with the `yunmi.kettle.v9` and should support `v10` to `v16`. If your Kettle Pro is still your faithful companion today, please give it a try!
 
 ## Functionality
 - Set the temperature of mode: heating, warming

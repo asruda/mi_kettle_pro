@@ -88,7 +88,7 @@ MI_BOOL_MAP: Final = {
 # Temperature settings
 DEFAULT_HEAT_TEMPERATURE: Final = 90  # Default heat temperature
 MIN_HEAT_TEMPERATURE: Final = 50      # Minimum heat temperature
-MAX_HEAT_TEMPERATURE: Final = 100     # Maximum heat temperature
+MAX_HEAT_TEMPERATURE: Final = 98     # Maximum heat temperature
 
 DEFAULT_WARM_TEMPERATURE: Final = 20  # Default warm temperature
 MIN_WARM_TEMPERATURE: Final = 10      # Minimum warm temperature

@@ -13,7 +13,7 @@ This project adds support for the Xiaomi Kettle Pro to Home Assistant. It establ
 - yunmi.kettle.v9
 - yunmi.kettle.v10 to v16 (likely supported)
 
-yunmi.kettle.v9 was used as the testing device. Other models are likely supported since they all share the **Mi Smart Kettle Pro** name. You can verify device name [here](https://home.miot-spec.com/s/yunmi.kettle.v10).
+`yunmi.kettle.v9` serves as the testing device (`mjhwsh02ym` on a label on the bottom of the device). Other models are likely supported since they all share the **Mi Smart Kettle Pro** name. You can verify device name [here](https://home.miot-spec.com/s/yunmi.kettle.v10).
 
 ## Preparation
 1. Recommended Version:

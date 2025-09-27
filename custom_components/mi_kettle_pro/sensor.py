@@ -105,7 +105,7 @@ class MiKettleProStatusSensor(MiKettleSensor):
     """Representation of a Mi Kettle Pro status sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Device Status"
+    _attr_translation_key = "status"
     _attr_unique_name = "status"
     _status_key = "action"
 
@@ -116,7 +116,7 @@ class MiKettleProStatusSensor(MiKettleSensor):
         if original_value is None:
             return None
 
-        # Use translation keys, Home Assistant will handle translation automatically
+        # Return the translation key, Home Assistant will handle translation automatically
         # Translation key format: entity.sensor.state.{status_value}
         return original_value
 
@@ -125,7 +125,7 @@ class MiKettleProCurrentTemperatureSensor(MiKettleSensor):
     """Representation of a Mi Kettle Pro current temperature sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Current Temperature"
+    _attr_translation_key = "current_temperature"
     _attr_device_class = "temperature"
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_unique_name = "current_temperature"
@@ -157,10 +157,10 @@ class MiKettleProCurrentTemperatureSensor(MiKettleSensor):
         return self._attr_native_value
 
 class MiKettleProOperationModeSensor(MiKettleSensor):
-    """Representation of a Mi Kettle Pro controllable sensor."""
+    """Representation of a Mi Kettle Pro operational mode sensor."""
 
     _attr_has_entity_name = True
-    _attr_name = "Operational Mode"
+    _attr_translation_key = "operational_mode"
     _attr_unique_id = "operational_mode"
     _status_key = "action"
     _attr_icon = "mdi:remote"

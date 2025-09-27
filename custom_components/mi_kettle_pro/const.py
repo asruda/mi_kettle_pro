@@ -64,20 +64,20 @@ OP_DEV_PREPARE_TOKEN: Final = bytes.fromhex("0000000c0200")
 ACK_READY: Final = bytes.fromhex("00000101")
 ACK_SUCCESS: Final = bytes.fromhex("00000100")
 
-# Status mapping
+# Status mapping - use translation keys instead of hardcoded English
 MI_ACTION_MAP: Final = {
     0: "idle",
     1: "heating",
     2: "heating",  # Heat And Keep Warm To The Set Temperature
-    3: "keeping warm",
+    3: "keeping_warm",
     4: "cooling",
 }
 
 # Status mapping
 CUSTOME_MODE_ACTION_MAP: Final = {
-    0: "Warming",
-    3: "Warming",
-    4: "Heating",
+    0: "warming",
+    3: "warming",
+    4: "heating",
 }
 
 MI_BOOL_MAP: Final = {
@@ -105,3 +105,7 @@ AVAIL_EVENT_KEY_IS_CONTROL = "is_control"
 WARM_INDEX = 3
 HEAT_INDEX = 4
 MODE_LENGTH = 4
+
+# mode config
+WARM_KEEP_DURATION = 24 # warming mode, set keep warm duration 12hours
+HEAT_MAINTENANCE_DURATION = 2 # set HEAT_MAINTENANCE_DURATION 30min(bytes.fromhex("01")), prevent water shortage risks caused by continuous heating in extreme conditions.

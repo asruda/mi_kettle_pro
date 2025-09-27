@@ -48,33 +48,57 @@
   },
   "entity": {
     "sensor": {
-      "status": "Status",
-      "current_temperature": "Current Temperature",
-      "state": {
-        "idle": "Idle",
-        "heating": "Heating",
-        "keeping warm": "Keeping Warm",
-        "cooling": "Cooling"
+      "status": {
+        "name": "Device Status",
+        "state": {
+          "idle": "Idle",
+          "heating": "Heating",
+          "keeping warm": "Keeping Warm",
+          "cooling": "Cooling"
+        }        
+      },
+      "current_temperature": {
+        "name": "Current Temperature"
+      },
+      "operational_mode": {
+        "name": "Operational Mode",
+        "state": {
+          "control": "Control",
+          "monitor": "Monitor"
+        }
       }
     },
     "number": {
-      "heat_temperature": "Heat Temperature",
-      "warm_temperature": "Warm Temperature"
+      "heat_temperature": {
+        "name": "Heat Temperature"
+      },
+      "warm_temperature": {
+        "name": "Warm Temperature"
+      }
     },
     "switch": {
-      "auto_keep_warm": "Auto Keep-warm after Lift-off"
-    },
-    "event": {
-      "controllable": "Controllable"
+      "auto_keep_warm": {
+        "name": "Auto Keep-warm after Lift-off"
+      }
     },
     "button": {
-      "heat": "Heat",
-      "warm": "Warm",
-      "turn_off_heat": "Turn off Heat",
-      "turn_off_keep_warm": "Turn off Keep-warm"
+      "heat": {
+        "name": "Heat"
+      },
+      "warm": {
+        "name": "Warm"
+      },
+      "turn_off_heat": {
+        "name": "Turn off Heat"
+      },
+      "turn_off_keep_warm": {
+        "name": "Turn off Keep-warm"
+      }
     },
     "time": {
-      "scheduled_heat": "Scheduled Heat"
+      "scheduled_heating": {
+        "name": "Scheduled Heat"
+      }
     }
   }
 }

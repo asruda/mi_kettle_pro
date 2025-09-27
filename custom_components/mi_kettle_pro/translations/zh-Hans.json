@@ -32,33 +32,58 @@
   },
   "entity": {
     "sensor": {
-      "status": "当前状态",
-      "current_temperature": "当前温度",
-      "state": {
-        "idle": "空闲",
-        "heating": "加热中",
-        "keeping warm": "保温中",
-        "cooling": "冷却中"
+      "status": {
+        "name": "设备状态",
+        "state": {
+          "idle": "空闲",
+          "heating": "加热中",
+          "keeping_warm": "保温中",
+          "cooling": "冷却中"
+        }
+      },
+      "current_temperature": {
+        "name": "当前水温"
+      },
+      "operational_mode": {
+        "name": "操作模式",
+        "state": {
+          "control": "可控制",
+          "monitor": "仅监控"
+        }
       }
+
     },
     "number": {
-      "heat_temperature": "加热温度",
-      "warm_temperature": "保温温度"
+      "heat_temperature": {
+        "name": "加热温度"
+      },
+      "warm_temperature": {
+        "name": "保温温度"
+      }
     },
     "switch": {
-      "auto_keep_warm": "提壶后保温"
-    },
-    "event": {
-      "controllable": "是否可控制"
+      "auto_keep_warm": {
+        "name": "提壶后保温"
+      }
     },
     "button": {
-      "heat": "加热",
-      "warm": "保温",
-      "turn_off_heating": "终止加热",
-      "turn_off_warming": "关闭保温"
+      "heat": {
+        "name": "加热"
+      },
+      "warm": {
+        "name": "保温"
+      },
+      "turn_off_heat": {
+        "name": "终止加热"
+      },
+      "turn_off_keep_warm": {
+        "name": "关闭保温"
+      }
     },
     "time": {
-      "scheduled_heating": "定时加热时间"
+      "scheduled_heating": {
+        "name": "定时加热时间"
+      }
     }
   },
   "options": {

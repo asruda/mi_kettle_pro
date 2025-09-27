@@ -46,6 +46,8 @@ from ..const import (
     HEAT_INDEX,
     CONF_HEAT_TEMPERATURE,
     CONF_WARM_TEMPERATURE,
+    WARM_KEEP_DURATION,
+    HEAT_MAINTENANCE_DURATION,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -670,11 +672,11 @@ class MiKettlePro:
             if not data:
                 return
             # warming mode, set keep warm duration 12hours
-            mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes(), bytes.fromhex("18"))
+            mode_data = self.replace_mode_segment(data, WARM_INDEX, int(warm_temperature).to_bytes(), bytes([WARM_KEEP_DURATION]))
             if not mode_data:
                 return
-            # heat mode, set keep warm duration 30min(bytes.fromhex("01")), prevent water shortage risks caused by continuous heating in extreme conditions.
-            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes(), bytes.fromhex("01"))
+            # heat mode
+            mode_data = self.replace_mode_segment(mode_data, HEAT_INDEX, int(heat_temperature).to_bytes(), bytes([HEAT_MAINTENANCE_DURATION]))
             if not mode_data:
                 return
             await self.write(self.write_mode_config, mode_data)

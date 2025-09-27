@@ -78,7 +78,7 @@ Add a new entry for one device in the Home Assistant UI:
 | `1` | no | - |
 | `2` | no | - |
 | `3` | **yes** | warming mode, Temperature: `warming temperature`, Duration: 12 hours |
-| `4` | **yes** | heating mode, Temperature: `heating temperature`, Duration: 30 mins |
+| `4` | **yes** | heating mode, Temperature: `heating temperature`, Duration: 1 hours |
 
 ## Troubleshooting
 1. If the connection is intermittent, try lifting and replacing the kettle.

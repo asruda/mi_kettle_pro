@@ -139,7 +139,7 @@ class MiKettleProHeatTemperatureNumber(MiKettleProBaseNumber):
     """Representation of a Mi Kettle Pro heat temperature number entity."""
 
     option_key = CONF_HEAT_TEMPERATURE
-    _attr_name = "Heat Temperature"
+    _attr_translation_key = "heat_temperature"
     _attr_unique_name = "heat_temperature"
     _attr_native_min_value = MIN_HEAT_TEMPERATURE
     _attr_native_max_value = MAX_HEAT_TEMPERATURE
@@ -152,7 +152,7 @@ class MiKettleProWarmTemperatureNumber(MiKettleProBaseNumber):
     """Representation of a Mi Kettle Pro warm temperature number entity."""
 
     option_key = CONF_WARM_TEMPERATURE
-    _attr_name = "Warm Temperature"
+    _attr_translation_key = "warm_temperature"
     _attr_unique_name = "warm_temperature"
     _attr_native_min_value = MIN_WARM_TEMPERATURE
     _attr_native_max_value = MAX_WARM_TEMPERATURE

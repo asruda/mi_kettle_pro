@@ -36,7 +36,7 @@ class MiKettleProAutoKeepWarmSwitch(SwitchEntity):
     """Representation of a Mi Kettle Pro auto keep-warm switch."""
 
     _attr_has_entity_name = True
-    _attr_name = "Auto Keep-warm after Lift-off"
+    _attr_translation_key = "auto_keep_warm"
     _attr_unique_name = "auto_keep_warm_after_liftoff"
     _attr_icon = "mdi:kettle-steam"
 

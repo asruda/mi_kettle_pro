@@ -120,15 +120,14 @@ class MiKettleProBaseButton(ButtonEntity):
 
 class MiKettleProHeatButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro Heat button."""
-
-    _attr_name = "Heat"
+    _attr_translation_key = "heat"
     _attr_unique_name = "heat"
     _attr_icon = "mdi:kettle-steam"
 
 class MiKettleProWarmButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro warm button."""
 
-    _attr_name = "Warm"
+    _attr_translation_key = "warm"
     _attr_unique_name = "warm"
     _attr_icon = "mdi:kettle"
 
@@ -136,7 +135,7 @@ class MiKettleProWarmButton(MiKettleProBaseButton):
 class MiKettleProTurnOffBoilButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro turn off boil button."""
 
-    _attr_name = "Turn off Boiling"
+    _attr_translation_key = "turn_off_heat"
     _attr_unique_name = "turn_off_boil"
     _attr_icon = "mdi:fire-off"
 
@@ -144,6 +143,6 @@ class MiKettleProTurnOffBoilButton(MiKettleProBaseButton):
 class MiKettleProTurnOffWarmButton(MiKettleProBaseButton):
     """Representation of a Mi Kettle Pro turn off keep-warm button."""
 
-    _attr_name = "Turn off warming"
+    _attr_translation_key = "turn_off_keep_warm"
     _attr_unique_name = "turn_off_warm"
     _attr_icon = "mdi:thermometer-off"

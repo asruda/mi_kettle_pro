@@ -37,7 +37,7 @@ class MiKettleProScheduledHeatTime(TimeEntity):
     """Representation of a Mi Kettle Pro scheduled heat time entity."""
 
     _attr_has_entity_name = True
-    _attr_name = "Scheduled Heat"
+    _attr_translation_key = "scheduled_heating"
     _attr_unique_name = "scheduled_heat"
     _attr_icon = "mdi:clock-outline"
 
